@@ -21,6 +21,103 @@ interface VexFlowStaffProps {
 export default function VexFlowStaff({ currentProblem, answered = false }: VexFlowStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Web Audio API 초기화
+  const initAudio = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    
+    // AudioContext가 suspended 상태라면 resume
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  };
+
+  // 음표 이름을 주파수로 변환
+  const noteToFrequency = (noteName: string): number => {
+    const noteMap: { [key: string]: number } = {
+      'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13, 'E': 329.63, 'F': 349.23,
+      'F#': 369.99, 'G': 392.00, 'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88
+    };
+    
+    const [note, octave] = noteName.split('/');
+    const baseFreq = noteMap[note] || 440;
+    const octaveMultiplier = Math.pow(2, parseInt(octave) - 4); // 4옥타브를 기준으로
+    return baseFreq * octaveMultiplier;
+  };
+
+  // 피아노 소리 재생
+  const playNote = (noteName: string) => {
+    // AudioContext 상태를 직접 확인
+    if (!audioContextRef.current || audioContextRef.current.state !== 'running') {
+      // console.log('Audio not ready');
+      return;
+    }
+    
+    try {
+      if (!audioContextRef.current) {
+        return;
+      }
+      
+      const frequency = noteToFrequency(noteName);
+      
+      const now = audioContextRef.current.currentTime;
+      const duration = 0.8;
+      
+      // 피아노 소리를 위한 여러 하모닉스 생성
+      const harmonics = [
+        { freq: frequency, gain: 1.0 },      // 기본 주파수
+        { freq: frequency * 2, gain: 0.5 },  // 2배음
+        { freq: frequency * 3, gain: 0.25 }, // 3배음
+        { freq: frequency * 4, gain: 0.125 }, // 4배음
+        { freq: frequency * 5, gain: 0.0625 } // 5배음
+      ];
+      
+      harmonics.forEach((harmonic, index) => {
+        const oscillator = audioContextRef.current!.createOscillator();
+        const gainNode = audioContextRef.current!.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContextRef.current!.destination);
+        
+        oscillator.frequency.setValueAtTime(harmonic.freq, now);
+        oscillator.type = 'triangle'; // 삼각파로 더 풍부한 소리
+        
+        // 피아노 같은 ADSR 엔벨로프
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(harmonic.gain * 0.3, now + 0.02); // 빠른 Attack
+        gainNode.gain.exponentialRampToValueAtTime(harmonic.gain * 0.1, now + 0.1); // Decay
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // Release
+        
+        oscillator.start(now);
+                oscillator.stop(now + duration);
+      });
+    } catch (error) {
+      console.error('Audio playback error:', error);
+    }
+  };
+
+  // 음표 클릭 이벤트 핸들러
+  const handleNoteClick = (noteName: string) => {
+    // console.log('handleNoteClick called with:', noteName);
+    playNote(noteName);
+  };
+
+  // 오디오 활성화
+  const enableAudio = async () => {
+    try {
+      initAudio();
+      if (audioContextRef.current) {
+        await audioContextRef.current.resume();
+        setAudioEnabled(true);
+      }
+    } catch (error) {
+      console.error('Failed to enable audio:', error);
+    }
+  };
 
   const getNoteName = (y: number): string => {
     // 오선지의 정확한 위치에 맞는 음표 매핑
@@ -151,7 +248,7 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
             }
           }
           
-          console.log(`Note: ${note}, Display: ${displayNote}, Octave: ${octave}, Pitch: ${pitch}, StemDir: ${stemDir}`);
+          // console.log(`Note: ${note}, Display: ${displayNote}, Octave: ${octave}, Pitch: ${pitch}, StemDir: ${stemDir}`);
           return stemDir;
         };
 
@@ -173,6 +270,56 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
         // 음표 그리기
         voice.draw(context, stave);
 
+        // 음표 요소에 클릭 이벤트 추가
+        setTimeout(() => {
+          // console.log('Setting up click events...');
+          
+          // VexFlow 음표 요소 찾기
+          const noteheadElements = svg?.querySelectorAll('.vf-notehead');
+          // console.log('Found notehead elements:', noteheadElements?.length);
+          
+          if (!noteheadElements || noteheadElements.length < 2) {
+            // console.log('Not enough notehead elements found');
+            return;
+          }
+          
+          // 모든 하위 요소에도 클릭 이벤트 추가
+          noteheadElements.forEach((element, index) => {
+            const allChildren = element.querySelectorAll('*');
+            // console.log(`Notehead ${index} has ${allChildren.length} children`);
+            
+            // 부모 요소에 클릭 이벤트
+            (element as SVGElement).style.cursor = 'pointer';
+            (element as SVGElement).style.pointerEvents = 'auto';
+            element.addEventListener('click', (e) => {
+              // console.log(`Notehead ${index} clicked!`);
+              e.stopPropagation();
+              if (index === 0) {
+                handleNoteClick(leftNoteName);
+              } else {
+                handleNoteClick(rightNoteName);
+              }
+            });
+            
+            // 모든 자식 요소에도 클릭 이벤트 추가
+            allChildren.forEach((child) => {
+              (child as SVGElement).style.cursor = 'pointer';
+              (child as SVGElement).style.pointerEvents = 'auto';
+              child.addEventListener('click', (e) => {
+                // console.log(`Notehead ${index} child clicked!`);
+                e.stopPropagation();
+                if (index === 0) {
+                  handleNoteClick(leftNoteName);
+                } else {
+                  handleNoteClick(rightNoteName);
+                }
+              });
+            });
+          });
+          
+          // console.log('Click events setup complete');
+        }, 500); // 시간을 더 늘려서 SVG가 완전히 렌더링된 후 이벤트 추가
+
         // 음표 이름 표시
         const leftNoteName = getNoteName(currentProblem.leftNote.y);
         const rightNoteName = getNoteName(currentProblem.rightNote.y);
@@ -181,7 +328,7 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
         // 음표 이름을 SVG 텍스트로 추가
         const svg = containerRef.current!.querySelector('svg');
         if (svg) {
-          // 왼쪽 음표 이름
+          // 왼쪽 음표 이름 (클릭 가능)
           const leftText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           leftText.setAttribute('x', '200');
           leftText.setAttribute('y', '180');
@@ -190,10 +337,13 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
           leftText.setAttribute('font-size', '14');
           leftText.setAttribute('font-weight', 'bold');
           leftText.setAttribute('font-family', 'Arial');
+          leftText.setAttribute('cursor', 'pointer');
+          leftText.setAttribute('class', 'note-name');
           leftText.textContent = leftNoteName;
+          
           svg.appendChild(leftText);
 
-          // 오른쪽 음표 이름
+          // 오른쪽 음표 이름 (클릭 가능)
           const rightText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           rightText.setAttribute('x', '600');
           rightText.setAttribute('y', '180');
@@ -202,7 +352,10 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
           rightText.setAttribute('font-size', '14');
           rightText.setAttribute('font-weight', 'bold');
           rightText.setAttribute('font-family', 'Arial');
+          rightText.setAttribute('cursor', 'pointer');
+          rightText.setAttribute('class', 'note-name');
           rightText.textContent = rightNoteName;
+          
           svg.appendChild(rightText);
 
           // 높이 비교 텍스트
@@ -255,11 +408,33 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
   if (!currentProblem) return null;
 
   return (
-    <div className="flex justify-center mb-8 p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
+    <div className="flex flex-col items-center mb-8 p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
+      {!audioEnabled && (
+        <button
+          onClick={enableAudio}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          🔊 오디오 활성화 (클릭하여 소리 재생 가능)
+        </button>
+      )}
+      {audioEnabled && (
+        <button
+          onClick={() => playNote('A/4')}
+          className="mb-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+          🎵 테스트 소리 재생 (A4)
+        </button>
+      )}
       <div 
         ref={containerRef}
         className="border-2 border-gray-300 rounded-lg bg-white shadow-md"
       />
+      <p className="text-sm text-gray-600 mt-2 text-center">
+        {audioEnabled 
+          ? "💡 음표를 클릭하면 피아노 소리를 들을 수 있습니다!"
+          : "🔇 먼저 오디오를 활성화해주세요!"
+        }
+      </p>
     </div>
   );
 } 
