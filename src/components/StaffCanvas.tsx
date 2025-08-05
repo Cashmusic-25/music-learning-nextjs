@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Factory } from 'vexflow';
 
 interface Note {
@@ -38,7 +38,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
     return `${noteNames[index]}/${octaves[index]}`;
   };
 
-  const drawStaff = () => {
+  const drawStaff = useCallback(() => {
     if (!canvasRef.current || !currentProblem) return;
 
     // 기존 내용 삭제
@@ -48,7 +48,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       // VexFlow Factory 생성
       const factory = new Factory({
         renderer: { 
-          elementId: canvasRef.current as HTMLElement, 
+          elementId: canvasRef.current as unknown as string, 
           width: 800, 
           height: 250 
         }
@@ -162,7 +162,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       `;
       canvasRef.current.appendChild(errorDiv);
     }
-  };
+  }, [currentProblem, answered]);
 
   useEffect(() => {
     drawStaff();

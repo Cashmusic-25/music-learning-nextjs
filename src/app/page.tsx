@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ScoreBoard from '@/components/ScoreBoard';
 import VexFlowStaff from '@/components/VexFlowStaff';
 import GameControls from '@/components/GameControls';
@@ -53,7 +53,7 @@ export default function MusicLearningApp() {
     return Math.floor(Math.random() * (maxY - minY + 1)) + minY;
   };
 
-  const generateNewProblem = () => {
+  const generateNewProblem = useCallback(() => {
     let leftY = generateRandomNotePosition();
     let rightY = generateRandomNotePosition();
     
@@ -75,7 +75,7 @@ export default function MusicLearningApp() {
     setCurrentProblem(newProblem);
     setAnswered(false);
     setFeedback({ message: '', type: null });
-  };
+  }, []);
 
   const checkAnswer = (selectedAnswer: 'left' | 'right') => {
     if (answered || !currentProblem) return;
