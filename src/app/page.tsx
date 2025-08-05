@@ -107,7 +107,7 @@ export default function MusicLearningApp() {
 
   useEffect(() => {
     generateNewProblem();
-  }, []);
+  }, [generateNewProblem]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 text-gray-800">

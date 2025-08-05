@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+
 
 interface Note {
   x: number;
@@ -35,7 +35,7 @@ export default function SimpleStaffCanvas({ currentProblem, answered = false }: 
     return `${noteNames[index]}/${octaves[index]}`;
   };
 
-  const renderNote = (x: number, y: number, isHigher: boolean) => {
+  const renderNote = (x: number, y: number) => {
     const noteSize = 8;
     const stemHeight = 45;
     const stemWidth = 2;
@@ -149,8 +149,8 @@ export default function SimpleStaffCanvas({ currentProblem, answered = false }: 
         ))}
         
         {/* 음표 렌더링 */}
-        {renderNote(leftNoteX, leftNoteY, isLeftHigher)}
-        {renderNote(rightNoteX, rightNoteY, !isLeftHigher)}
+        {renderNote(leftNoteX, leftNoteY)}
+        {renderNote(rightNoteX, rightNoteY)}
         
         {/* 높이 비교 화살표 */}
         <g>

@@ -13,7 +13,7 @@ export default function Instructions() {
         </li>
         <li className="flex items-center p-3 border-b border-gray-200 text-gray-600 text-lg">
           <span className="mr-3">🎵</span>
-          정답을 확인한 후 "다음 문제" 버튼을 눌러 계속 연습하세요
+          정답을 확인한 후 &ldquo;다음 문제&rdquo; 버튼을 눌러 계속 연습하세요
         </li>
         <li className="flex items-center p-3 text-gray-600 text-lg">
           <span className="mr-3">🎵</span>

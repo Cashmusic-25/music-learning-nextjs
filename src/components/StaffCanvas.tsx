@@ -48,7 +48,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       // VexFlow Factory 생성
       const factory = new Factory({
         renderer: { 
-          elementId: canvasRef.current as any, 
+          elementId: canvasRef.current as HTMLElement, 
           width: 800, 
           height: 250 
         }
@@ -65,7 +65,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       system.addStave({
         voices: [
           score.voice([
-            score.notes(leftNoteName + '/q', { clef: 'treble' }) as any
+            score.notes(leftNoteName + '/q', { clef: 'treble' }) as unknown
           ])
         ]
       }).addClef('treble');
@@ -74,7 +74,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       system.addStave({
         voices: [
           score.voice([
-            score.notes(rightNoteName + '/q') as any
+            score.notes(rightNoteName + '/q') as unknown
           ])
         ]
       });
@@ -166,7 +166,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
 
   useEffect(() => {
     drawStaff();
-  }, [currentProblem, answered]);
+  }, [currentProblem, answered, drawStaff]);
 
   return (
     <div className="flex justify-center mb-8 p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
