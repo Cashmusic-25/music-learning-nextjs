@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { VexFlow } from 'vexflow';
+import { useEffect, useRef, useState } from 'react';
 
 interface Note {
   x: number;
@@ -21,6 +20,7 @@ interface VexFlowStaffProps {
 
 export default function VexFlowStaff({ currentProblem, answered = false }: VexFlowStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
 
   const getNoteName = (y: number): string => {
     // 오선지의 정확한 위치에 맞는 음표 매핑
@@ -103,140 +103,153 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
   useEffect(() => {
     if (!containerRef.current || !currentProblem) return;
 
-    // 기존 내용 제거
-    containerRef.current.innerHTML = '';
+    // VexFlow 동적 로드
+    const loadVexFlow = async () => {
+      try {
+        const { VexFlow } = await import('vexflow');
+        setVexFlowLoaded(true);
 
-    try {
-      // VexFlow 5.x 방식으로 렌더러 생성
-      const renderer = new VexFlow.Renderer(containerRef.current, VexFlow.Renderer.Backends.SVG);
-      renderer.resize(800, 250);
-      const context = renderer.getContext();
+        // 기존 내용 제거
+        containerRef.current!.innerHTML = '';
 
-      // 오선 생성
-      const stave = new VexFlow.Stave(50, 100, 700);
-      stave.addClef('treble');
-      stave.setContext(context).draw();
+        // VexFlow 5.x 방식으로 렌더러 생성
+        const renderer = new VexFlow.Renderer(containerRef.current!, VexFlow.Renderer.Backends.SVG);
+        renderer.resize(800, 250);
+        const context = renderer.getContext();
 
-      // 왼쪽 음표와 오른쪽 음표 생성
-      const leftNote = yToVexNote(currentProblem.leftNote.y);
-      const rightNote = yToVexNote(currentProblem.rightNote.y);
-      
-      // 음표 객체 생성
-      const leftNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [leftNote], duration: '4' });
-      const rightNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [rightNote], duration: '4' });
+        // 오선 생성
+        const stave = new VexFlow.Stave(50, 100, 700);
+        stave.addClef('treble');
+        stave.setContext(context).draw();
 
-      // B3(포함) 이상의 음은 꼬리 아래, 미만은 위로 설정
-      const getStemDir = (note: string) => {
-        const [pitch, octaveStr] = note.split('/');
-        const octave = parseInt(octaveStr, 10);
+        // 왼쪽 음표와 오른쪽 음표 생성
+        const leftNote = yToVexNote(currentProblem.leftNote.y);
+        const rightNote = yToVexNote(currentProblem.rightNote.y);
         
-        // B3 이상이면 아래(-1), 아니면 위(1)
-        let stemDir = 1; // 기본값: 위
+        // 음표 객체 생성
+        const leftNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [leftNote], duration: '4' });
+        const rightNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [rightNote], duration: '4' });
+
+        // 각 음표의 표시 이름 가져오기
+        const leftDisplayNote = getNoteName(currentProblem.leftNote.y);
+        const rightDisplayNote = getNoteName(currentProblem.rightNote.y);
         
-        if (octave > 3) {
-          stemDir = -1; // 4옥타브 이상은 아래
-        } else if (octave === 3) {
-          // 3옥타브에서 B, C는 아래, 나머지는 위
-          if (pitch.toLowerCase() >= 'b') {
-            stemDir = -1; // B3, C3은 아래
+        // B4(포함) 이상의 음은 꼬리 아래, 미만은 위로 설정
+        const getStemDir = (note: string, displayNote: string) => {
+          const [pitch, octaveStr] = note.split('/');
+          const octave = parseInt(octaveStr, 10);
+          
+          // B4 이상이면 아래(-1), 아니면 위(1)
+          let stemDir = 1; // 기본값: 위
+          
+          if (octave > 4) {
+            stemDir = -1; // 5옥타브 이상은 아래
+          } else if (octave === 4) {
+            // 4옥타브에서 B4만 아래, 나머지는 위
+            if (pitch.toLowerCase() === 'b') {
+              stemDir = -1; // B4만 아래
+            }
           }
+          
+          console.log(`Note: ${note}, Display: ${displayNote}, Octave: ${octave}, Pitch: ${pitch}, StemDir: ${stemDir}`);
+          return stemDir;
+        };
+
+        leftNoteObj.setStemDirection(getStemDir(leftNote, leftDisplayNote));
+        rightNoteObj.setStemDirection(getStemDir(rightNote, rightDisplayNote));
+
+        // 음표 위치 설정
+        leftNoteObj.setStave(stave);
+        rightNoteObj.setStave(stave);
+
+        // Voice 생성 및 음표 추가
+        const voice = new VexFlow.Voice({ numBeats: 2, beatValue: 4 });
+        voice.addTickables([leftNoteObj, rightNoteObj]);
+
+        // Formatter로 음표 배치
+        const formatter = new VexFlow.Formatter();
+        formatter.joinVoices([voice]).format([voice], 600);
+
+        // 음표 그리기
+        voice.draw(context, stave);
+
+        // 음표 이름 표시
+        const leftNoteName = getNoteName(currentProblem.leftNote.y);
+        const rightNoteName = getNoteName(currentProblem.rightNote.y);
+        const isLeftHigher = currentProblem.leftNote.y < currentProblem.rightNote.y;
+
+        // 음표 이름을 SVG 텍스트로 추가
+        const svg = containerRef.current!.querySelector('svg');
+        if (svg) {
+          // 왼쪽 음표 이름
+          const leftText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          leftText.setAttribute('x', '200');
+          leftText.setAttribute('y', '180');
+          leftText.setAttribute('text-anchor', 'middle');
+          leftText.setAttribute('fill', '#374151');
+          leftText.setAttribute('font-size', '14');
+          leftText.setAttribute('font-weight', 'bold');
+          leftText.setAttribute('font-family', 'Arial');
+          leftText.textContent = leftNoteName;
+          svg.appendChild(leftText);
+
+          // 오른쪽 음표 이름
+          const rightText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          rightText.setAttribute('x', '600');
+          rightText.setAttribute('y', '180');
+          rightText.setAttribute('text-anchor', 'middle');
+          rightText.setAttribute('fill', '#374151');
+          rightText.setAttribute('font-size', '14');
+          rightText.setAttribute('font-weight', 'bold');
+          rightText.setAttribute('font-family', 'Arial');
+          rightText.textContent = rightNoteName;
+          svg.appendChild(rightText);
+
+          // 높이 비교 텍스트
+          if (answered) {
+            const compareText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            compareText.setAttribute('x', '400');
+            compareText.setAttribute('y', '220');
+            compareText.setAttribute('text-anchor', 'middle');
+            compareText.setAttribute('fill', '#10b981');
+            compareText.setAttribute('font-size', '16');
+            compareText.setAttribute('font-weight', 'bold');
+            compareText.setAttribute('font-family', 'Arial');
+            compareText.textContent = `${leftNoteName} ${isLeftHigher ? '>' : '<'} ${rightNoteName}`;
+            svg.appendChild(compareText);
+          }
+
+          // 높이 표시선 (점선)
+          const leftGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          leftGuideLine.setAttribute('x1', '50');
+          leftGuideLine.setAttribute('y1', '120');
+          leftGuideLine.setAttribute('x2', '180');
+          leftGuideLine.setAttribute('y2', '120');
+          leftGuideLine.setAttribute('stroke', '#e5e7eb');
+          leftGuideLine.setAttribute('stroke-width', '1');
+          leftGuideLine.setAttribute('stroke-dasharray', '5,5');
+          svg.appendChild(leftGuideLine);
+
+          const rightGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          rightGuideLine.setAttribute('x1', '620');
+          rightGuideLine.setAttribute('y1', '120');
+          rightGuideLine.setAttribute('x2', '750');
+          rightGuideLine.setAttribute('y2', '120');
+          rightGuideLine.setAttribute('stroke', '#e5e7eb');
+          rightGuideLine.setAttribute('stroke-width', '1');
+          rightGuideLine.setAttribute('stroke-dasharray', '5,5');
+          svg.appendChild(rightGuideLine);
         }
-        
-        console.log(`Note: ${note}, Octave: ${octave}, Pitch: ${pitch}, StemDir: ${stemDir}`);
-        return stemDir;
-      };
-
-      leftNoteObj.setStemDirection(getStemDir(leftNote));
-      rightNoteObj.setStemDirection(getStemDir(rightNote));
-
-      // 음표 위치 설정
-      leftNoteObj.setStave(stave);
-      rightNoteObj.setStave(stave);
-
-      // Voice 생성 및 음표 추가
-      const voice = new VexFlow.Voice({ numBeats: 2, beatValue: 4 });
-      voice.addTickables([leftNoteObj, rightNoteObj]);
-
-      // Formatter로 음표 배치
-      const formatter = new VexFlow.Formatter();
-      formatter.joinVoices([voice]).format([voice], 600);
-
-      // 음표 그리기
-      voice.draw(context, stave);
-
-      // 음표 이름 표시
-      const leftNoteName = getNoteName(currentProblem.leftNote.y);
-      const rightNoteName = getNoteName(currentProblem.rightNote.y);
-      const isLeftHigher = currentProblem.leftNote.y < currentProblem.rightNote.y;
-
-      // 음표 이름을 SVG 텍스트로 추가
-      const svg = containerRef.current.querySelector('svg');
-      if (svg) {
-        // 왼쪽 음표 이름
-        const leftText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        leftText.setAttribute('x', '200');
-        leftText.setAttribute('y', '180');
-        leftText.setAttribute('text-anchor', 'middle');
-        leftText.setAttribute('fill', '#374151');
-        leftText.setAttribute('font-size', '14');
-        leftText.setAttribute('font-weight', 'bold');
-        leftText.setAttribute('font-family', 'Arial');
-        leftText.textContent = leftNoteName;
-        svg.appendChild(leftText);
-
-        // 오른쪽 음표 이름
-        const rightText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        rightText.setAttribute('x', '600');
-        rightText.setAttribute('y', '180');
-        rightText.setAttribute('text-anchor', 'middle');
-        rightText.setAttribute('fill', '#374151');
-        rightText.setAttribute('font-size', '14');
-        rightText.setAttribute('font-weight', 'bold');
-        rightText.setAttribute('font-family', 'Arial');
-        rightText.textContent = rightNoteName;
-        svg.appendChild(rightText);
-
-        // 높이 비교 텍스트
-        if (answered) {
-          const compareText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          compareText.setAttribute('x', '400');
-          compareText.setAttribute('y', '220');
-          compareText.setAttribute('text-anchor', 'middle');
-          compareText.setAttribute('fill', '#10b981');
-          compareText.setAttribute('font-size', '16');
-          compareText.setAttribute('font-weight', 'bold');
-          compareText.setAttribute('font-family', 'Arial');
-          compareText.textContent = `${leftNoteName} ${isLeftHigher ? '>' : '<'} ${rightNoteName}`;
-          svg.appendChild(compareText);
+      } catch (error) {
+        console.error('VexFlow 오류:', error);
+        // 오류 발생 시 간단한 메시지 표시
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '<div style="text-align: center; padding: 50px; color: #666;">음표 로딩 중...</div>';
         }
-
-        // 높이 표시선 (점선)
-        const leftGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        leftGuideLine.setAttribute('x1', '50');
-        leftGuideLine.setAttribute('y1', '120');
-        leftGuideLine.setAttribute('x2', '180');
-        leftGuideLine.setAttribute('y2', '120');
-        leftGuideLine.setAttribute('stroke', '#e5e7eb');
-        leftGuideLine.setAttribute('stroke-width', '1');
-        leftGuideLine.setAttribute('stroke-dasharray', '5,5');
-        svg.appendChild(leftGuideLine);
-
-        const rightGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        rightGuideLine.setAttribute('x1', '620');
-        rightGuideLine.setAttribute('y1', '120');
-        rightGuideLine.setAttribute('x2', '750');
-        rightGuideLine.setAttribute('y2', '120');
-        rightGuideLine.setAttribute('stroke', '#e5e7eb');
-        rightGuideLine.setAttribute('stroke-width', '1');
-        rightGuideLine.setAttribute('stroke-dasharray', '5,5');
-        svg.appendChild(rightGuideLine);
       }
-    } catch (error) {
-      console.error('VexFlow 오류:', error);
-      // 오류 발생 시 간단한 메시지 표시
-      containerRef.current.innerHTML = '<div style="text-align: center; padding: 50px; color: #666;">음표 로딩 중...</div>';
-    }
+    };
 
+    loadVexFlow();
   }, [currentProblem, answered]);
 
   if (!currentProblem) return null;
