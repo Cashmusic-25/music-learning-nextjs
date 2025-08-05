@@ -65,7 +65,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       system.addStave({
         voices: [
           score.voice([
-            score.notes(leftNoteName + '/q', { clef: 'treble' }) as unknown
+            score.notes(leftNoteName + '/q', { clef: 'treble' }) as any
           ])
         ]
       }).addClef('treble');
@@ -74,7 +74,7 @@ export default function StaffCanvas({ currentProblem, answered = false }: StaffC
       system.addStave({
         voices: [
           score.voice([
-            score.notes(rightNoteName + '/q') as unknown
+            score.notes(rightNoteName + '/q') as any
           ])
         ]
       });

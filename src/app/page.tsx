@@ -75,7 +75,7 @@ export default function MusicLearningApp() {
     setCurrentProblem(newProblem);
     setAnswered(false);
     setFeedback({ message: '', type: null });
-  }, []);
+  }, [staffConfig.leftNoteX, staffConfig.rightNoteX]);
 
   const checkAnswer = (selectedAnswer: 'left' | 'right') => {
     if (answered || !currentProblem) return;
