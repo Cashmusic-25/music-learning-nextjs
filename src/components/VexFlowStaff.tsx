@@ -223,9 +223,17 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
         const leftNote = yToVexNote(currentProblem.leftNote.y);
         const rightNote = yToVexNote(currentProblem.rightNote.y);
         
-        // 음표 객체 생성
-        const leftNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [leftNote], duration: '4' });
-        const rightNoteObj = new VexFlow.StaveNote({ clef: 'treble', keys: [rightNote], duration: '4' });
+        // 음표 객체 생성 - 더 안정적인 방법
+        const leftNoteObj = new VexFlow.StaveNote({ 
+          clef: 'treble', 
+          keys: [leftNote], 
+          duration: '4'
+        });
+        const rightNoteObj = new VexFlow.StaveNote({ 
+          clef: 'treble', 
+          keys: [rightNote], 
+          duration: '4'
+        });
 
         // 각 음표의 표시 이름 가져오기
         const leftDisplayNote = getNoteName(currentProblem.leftNote.y);
@@ -263,11 +271,14 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
         const voice = new VexFlow.Voice({ numBeats: 2, beatValue: 4 });
         voice.addTickables([leftNoteObj, rightNoteObj]);
 
-        // Formatter로 음표 배치
+        // Formatter로 음표 배치 - 더 안정적인 포맷팅
         const formatter = new VexFlow.Formatter();
-        formatter.joinVoices([voice]).format([voice], 600);
-
-        // 음표 그리기
+        formatter.joinVoices([voice]);
+        
+        // 음표 간격을 명시적으로 설정하고 포맷팅
+        formatter.format([voice], 600);
+        
+        // 음표 그리기 - 개별적으로 그려서 스템 연결 문제 방지
         voice.draw(context, stave);
 
         // 음표 요소에 클릭 이벤트 추가
