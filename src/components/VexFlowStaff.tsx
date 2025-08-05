@@ -45,7 +45,7 @@ export default function VexFlowStaff({ currentProblem, answered = false }: VexFl
     
     const [note, octave] = noteName.split('/');
     const baseFreq = noteMap[note] || 440;
-    const octaveMultiplier = Math.pow(2, parseInt(octave) - 4); // 4옥타브를 기준으로
+    const octaveMultiplier = Math.pow(2, parseInt(octave) - 3); // 3옥타브를 기준으로 수정
     return baseFreq * octaveMultiplier;
   };
 
