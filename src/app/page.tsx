@@ -1,103 +1,150 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import ScoreBoard from '@/components/ScoreBoard';
+import VexFlowStaff from '@/components/VexFlowStaff';
+import GameControls from '@/components/GameControls';
+import Feedback from '@/components/Feedback';
+import Instructions from '@/components/Instructions';
+
+interface Note {
+  x: number;
+  y: number;
+}
+
+interface Problem {
+  leftNote: Note;
+  rightNote: Note;
+  correctAnswer: 'left' | 'right';
+}
+
+export default function MusicLearningApp() {
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
+  const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; type: 'correct' | 'incorrect' | null }>({ message: '', type: null });
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+
+  const staffConfig = {
+    lineSpacing: 20,
+    staffTop: 100,
+    staffHeight: 80,
+    leftNoteX: 200,
+    rightNoteX: 600,
+    noteSize: 15
+  };
+
+  const generateRandomNotePosition = () => {
+    // C3~C5 범위로 제한 (학습에 적합한 음역)
+    // C3: staffTop + 3 * lineSpacing (네 번째 선)
+    // C5: staffTop - 0.5 * lineSpacing (첫 번째 선 위)
+    const staffTop = 100;
+    const lineSpacing = 20;
+    
+    const c3Y = staffTop + 3 * lineSpacing; // C3 위치 (네 번째 선)
+    const c5Y = staffTop - 0.5 * lineSpacing; // C5 위치 (첫 번째 선 위)
+    
+    // C3~C5 범위에서 랜덤 생성
+    const minY = c3Y;
+    const maxY = c5Y;
+    
+    return Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+  };
+
+  const generateNewProblem = () => {
+    let leftY = generateRandomNotePosition();
+    let rightY = generateRandomNotePosition();
+    
+    // 고정된 최소 높이 차이 설정 (기존 medium 난이도와 동일)
+    const minHeightDifference = 20;
+    
+    // 같은 높이인 경우 다시 생성
+    while (Math.abs(leftY - rightY) < minHeightDifference) {
+      leftY = generateRandomNotePosition();
+      rightY = generateRandomNotePosition();
+    }
+    
+    const newProblem: Problem = {
+      leftNote: { x: staffConfig.leftNoteX, y: leftY },
+      rightNote: { x: staffConfig.rightNoteX, y: rightY },
+      correctAnswer: leftY < rightY ? 'left' : 'right'
+    };
+    
+    setCurrentProblem(newProblem);
+    setAnswered(false);
+    setFeedback({ message: '', type: null });
+  };
+
+  const checkAnswer = (selectedAnswer: 'left' | 'right') => {
+    if (answered || !currentProblem) return;
+    
+    setAnswered(true);
+    const isCorrect = selectedAnswer === currentProblem.correctAnswer;
+    
+    if (isCorrect) {
+      setCorrectCount(prev => prev + 1);
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      if (newStreak > bestStreak) {
+        setBestStreak(newStreak);
+      }
+      setFeedback({ message: `정답입니다! 🎉 (연속 ${newStreak}번 정답!)`, type: 'correct' });
+    } else {
+      setIncorrectCount(prev => prev + 1);
+      setStreak(0);
+      setFeedback({ 
+        message: `틀렸습니다. 정답은 ${currentProblem.correctAnswer === 'left' ? '왼쪽' : '오른쪽'} 음표가 더 높습니다.`, 
+        type: 'incorrect' 
+      });
+    }
+  };
+
+  const accuracy = correctCount + incorrectCount > 0 
+    ? Math.round((correctCount / (correctCount + incorrectCount)) * 100) 
+    : 0;
+
+  useEffect(() => {
+    generateNewProblem();
+  }, []);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 text-gray-800">
+      <div className="max-w-6xl mx-auto p-5">
+        {/* Header */}
+        <header className="text-center mb-8 text-white">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-lg">
+            🎵 음악 학습 - 높은음/낮은음 구분 연습
+          </h1>
+          <p className="text-xl opacity-90">
+            두 개의 음표 중에서 더 높은 음을 선택해보세요!
+          </p>
+        </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        {/* Game Container */}
+        <div className="bg-white rounded-3xl p-8 shadow-2xl mb-8">
+          <ScoreBoard 
+            correctCount={correctCount}
+            incorrectCount={incorrectCount}
+            accuracy={accuracy}
+            streak={streak}
+            bestStreak={bestStreak}
+          />
+
+          <VexFlowStaff currentProblem={currentProblem} answered={answered} />
+
+          <GameControls 
+            answered={answered}
+            onCheckAnswer={checkAnswer}
+            onNextProblem={generateNewProblem}
+          />
+
+          <Feedback feedback={feedback} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <Instructions />
+      </div>
     </div>
   );
 }
