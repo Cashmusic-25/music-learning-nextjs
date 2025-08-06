@@ -24,6 +24,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const [useHTML5Audio, setUseHTML5Audio] = useState(false);
 
   // Web Audio API 초기화 (iOS 호환성 개선)
   const initAudio = () => {
@@ -37,6 +38,15 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         if (audioContextRef.current.state === 'suspended') {
           audioContextRef.current.resume();
         }
+        
+        // iOS에서 AudioContext를 활성화하기 위한 더미 오실레이터 생성
+        const dummyOscillator = audioContextRef.current.createOscillator();
+        const dummyGain = audioContextRef.current.createGain();
+        dummyGain.gain.setValueAtTime(0, audioContextRef.current.currentTime); // 무음으로 설정
+        dummyOscillator.connect(dummyGain);
+        dummyGain.connect(audioContextRef.current.destination);
+        dummyOscillator.start();
+        dummyOscillator.stop(audioContextRef.current.currentTime + 0.001);
       }
     } catch (error) {
       console.error('AudioContext 초기화 실패:', error);
@@ -59,6 +69,15 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   // 피아노 소리 재생 (iOS 호환성 개선)
   const playNote = async (noteName: string) => {
     try {
+      // HTML5 Audio를 사용하는 경우
+      if (useHTML5Audio) {
+        const audio = new Audio();
+        audio.src = `data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT`;
+        audio.volume = 0.3;
+        await audio.play();
+        return;
+      }
+      
       // AudioContext가 없거나 suspended 상태라면 재시도
       if (!audioContextRef.current) {
         initAudio();
@@ -70,9 +89,10 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         await audioContextRef.current.resume();
       }
       
-      // 여전히 running 상태가 아니라면 재시도
+      // 여전히 running 상태가 아니라면 HTML5 Audio로 전환
       if (audioContextRef.current.state !== 'running') {
-        console.log('AudioContext 상태:', audioContextRef.current.state);
+        console.log('AudioContext 상태:', audioContextRef.current.state, '- HTML5 Audio로 전환');
+        setUseHTML5Audio(true);
         return;
       }
       
@@ -110,6 +130,8 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
       });
     } catch (error) {
       console.error('Audio playback error:', error);
+      // 에러 발생 시 HTML5 Audio로 전환
+      setUseHTML5Audio(true);
     }
   };
 
@@ -129,9 +151,35 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
           await audioContextRef.current.resume();
         }
         
-        // 테스트 소리 재생으로 오디오가 작동하는지 확인
-        await playNote('A/4');
-        setAudioEnabled(true);
+        // iOS에서 AudioContext를 강제로 활성화하기 위한 여러 시도
+        const forceActivate = async () => {
+          try {
+            // 더미 오실레이터로 AudioContext 활성화
+            const dummyOsc = audioContextRef.current!.createOscillator();
+            const dummyGain = audioContextRef.current!.createGain();
+            dummyGain.gain.setValueAtTime(0, audioContextRef.current!.currentTime);
+            dummyOsc.connect(dummyGain);
+            dummyGain.connect(audioContextRef.current!.destination);
+            dummyOsc.start();
+            dummyOsc.stop(audioContextRef.current!.currentTime + 0.001);
+            
+            // 잠시 대기 후 테스트 소리 재생
+            setTimeout(async () => {
+              try {
+                await playNote('A/4');
+                setAudioEnabled(true);
+              } catch (e) {
+                console.error('테스트 소리 재생 실패:', e);
+                setAudioEnabled(false);
+              }
+            }, 100);
+          } catch (e) {
+            console.error('AudioContext 강제 활성화 실패:', e);
+            setAudioEnabled(false);
+          }
+        };
+        
+        await forceActivate();
       }
     } catch (error) {
       console.error('Failed to enable audio:', error);
@@ -527,12 +575,19 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         </button>
       )}
       {audioEnabled && (
-        <button
-          onClick={() => playNote('A/4')}
-          className="mb-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          🎵 테스트 소리 재생 (A4)
-        </button>
+        <div className="mb-4 flex flex-col gap-2">
+          <button
+            onClick={() => playNote('A/4')}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            🎵 테스트 소리 재생 (A4)
+          </button>
+          {useHTML5Audio && (
+            <div className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+              📱 HTML5 Audio 모드 (iOS 호환)
+            </div>
+          )}
+        </div>
       )}
       <div 
         ref={containerRef}
