@@ -151,7 +151,7 @@ export default function NoteComparisonPage() {
           <Feedback feedback={feedback} />
         </div>
 
-        <Instructions />
+        <Instructions type="comparison" />
       </div>
     </div>
   );

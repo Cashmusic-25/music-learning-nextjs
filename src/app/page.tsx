@@ -24,23 +24,23 @@ export default function HomePage() {
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* 히어로 섹션 */}
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6">
             캐시뮤직 온라인
           </h2>
-          <p className="text-2xl text-gray-600 mb-8">
+          <p className="text-xl md:text-2xl text-gray-600 mb-6 md:mb-8">
             음악 연습 어플 사이트
           </p>
-          <p className="text-lg text-gray-500 max-w-3xl mx-auto">
+          <p className="text-base md:text-lg text-gray-500 max-w-3xl mx-auto px-4">
             온라인에서 언제든지 음악을 연습할 수 있는 플랫폼입니다. 
             다양한 음악 학습 도구를 통해 음악 실력을 향상시켜보세요!
           </p>
         </div>
 
         {/* 연습 도구 섹션 */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
           {/* 높은음/낮은음 구분 연습 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="text-center">
               <div className="text-4xl mb-4">🎼</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -59,8 +59,48 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* 음표 맞추기 퀴즈 */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎵</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                음표 맞추기 퀴즈
+              </h3>
+              <p className="text-gray-600 mb-6">
+                오선지에 있는 음표를 보고 해당하는 음 이름(도레미파솔라시)을 맞추는 퀴즈를 통해 
+                악보 읽기 능력을 향상시킬 수 있습니다.
+              </p>
+              <Link 
+                href="/note-quiz"
+                className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200"
+              >
+                퀴즈 시작하기
+              </Link>
+            </div>
+          </div>
+
+          {/* 음표 그리기 퀴즈 */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎨</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                음표 그리기 퀴즈
+              </h3>
+              <p className="text-gray-600 mb-6">
+                마우스로 오선지에 음표를 직접 그리는 퀴즈를 통해 
+                악보 작성 능력을 향상시킬 수 있습니다.
+              </p>
+              <Link 
+                href="/note-drawing"
+                className="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200"
+              >
+                그리기 시작하기
+              </Link>
+            </div>
+          </div>
+
           {/* 추가 연습 도구들 (향후 확장용) */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 opacity-50">
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
             <div className="text-center">
               <div className="text-4xl mb-4">🎹</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -79,7 +119,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8 opacity-50">
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
             <div className="text-center">
               <div className="text-4xl mb-4">🎸</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -100,7 +140,7 @@ export default function HomePage() {
         </div>
 
         {/* 특징 섹션 */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-12 md:mb-16">
           <h3 className="text-3xl font-bold text-gray-900 text-center mb-8">
             캐시뮤직의 특징
           </h3>
