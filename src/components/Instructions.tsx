@@ -18,11 +18,11 @@ export default function Instructions({ type = 'comparison' }: InstructionsProps)
           </li>
           <li className="flex items-center p-2 md:p-3 border-b border-gray-200 text-gray-600 text-base md:text-lg">
             <span className="mr-2 md:mr-3">🎨</span>
-            "정답 확인" 버튼을 눌러 정답을 확인하세요
+            &ldquo;정답 확인&rdquo; 버튼을 눌러 정답을 확인하세요
           </li>
           <li className="flex items-center p-2 md:p-3 text-gray-600 text-base md:text-lg">
             <span className="mr-2 md:mr-3">🎨</span>
-            "지우기" 버튼으로 다시 그릴 수 있습니다
+            &ldquo;지우기&rdquo; 버튼으로 다시 그릴 수 있습니다
           </li>
         </ul>
       </div>
