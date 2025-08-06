@@ -30,8 +30,8 @@ export default function NoteDrawingPage() {
   // 도레미파솔라시도 음계
   const solfegeNotes = ['도', '레', '미', '파', '솔', '라', '시'];
   
-  // 영어 음계 (C, D, E, F, G, A, B)
-  const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  // 영어 음계 (C, D, E, F, G, A, B, C5)
+  const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
 
   const getNoteY = (noteName: string): number => {
     // 오선지의 정확한 위치에 맞는 음표 매핑
@@ -39,13 +39,14 @@ export default function NoteDrawingPage() {
     const lineSpacing = 20;
     
     const noteMapping: { [key: string]: number } = {
-      'C': staffTop + 3 * lineSpacing,      // C4 (첫 번째 가선 아래)
+      'C': staffTop + 3 * lineSpacing,      // C4 (낮은 도)
       'D': staffTop + 2.5 * lineSpacing,    // D4
       'E': staffTop + 2 * lineSpacing,      // E4
       'F': staffTop + 1.5 * lineSpacing,    // F4
       'G': staffTop + lineSpacing,          // G4
       'A': staffTop + 0.5 * lineSpacing,    // A4
       'B': staffTop,                        // B4
+      'C5': staffTop - 0.5 * lineSpacing,   // C5 (높은 도)
     };
     
     return noteMapping[noteName] || staffTop;
@@ -53,7 +54,7 @@ export default function NoteDrawingPage() {
 
   const getSolfegeNoteName = (englishNote: string): string => {
     const noteMap: { [key: string]: string } = {
-      'C': '도', 'D': '레', 'E': '미', 'F': '파', 'G': '솔', 'A': '라', 'B': '시'
+      'C': '도', 'D': '레', 'E': '미', 'F': '파', 'G': '솔', 'A': '라', 'B': '시', 'C5': '도'
     };
     return noteMap[englishNote] || '도';
   };
