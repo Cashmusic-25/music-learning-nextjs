@@ -54,7 +54,7 @@ export default function NoteDrawingPage() {
 
   const getSolfegeNoteName = (englishNote: string): string => {
     const noteMap: { [key: string]: string } = {
-      'C': '도', 'D': '레', 'E': '미', 'F': '파', 'G': '솔', 'A': '라', 'B': '시', 'C5': '도'
+      'C': '낮은 도', 'D': '레', 'E': '미', 'F': '파', 'G': '솔', 'A': '라', 'B': '시', 'C5': '높은 도'
     };
     return noteMap[englishNote] || '도';
   };
@@ -84,9 +84,42 @@ export default function NoteDrawingPage() {
     
     setAnswered(true);
     
-    // 그려진 음표의 Y 위치가 정답과 일치하는지 확인 (허용 오차: 10px)
-    const tolerance = 10;
-    const isCorrect = Math.abs(drawnNote.y - currentProblem.targetY) <= tolerance;
+    // 그려진 음표의 Y 위치를 VexFlow 음표 이름으로 변환
+    const staffTop = 100;
+    const lineSpacing = 20;
+    
+    const yToVexNote = (y: number): string => {
+      const noteMapping = [
+        { y: staffTop - 0.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도)
+        { y: staffTop, note: 'b/4' },                          // B4 (시)
+        { y: staffTop + 0.5 * lineSpacing, note: 'a/4' },      // A4 (라)
+        { y: staffTop + lineSpacing, note: 'g/4' },            // G4 (솔)
+        { y: staffTop + 1.5 * lineSpacing, note: 'f/4' },      // F4 (파)
+        { y: staffTop + 2 * lineSpacing, note: 'e/4' },        // E4 (미)
+        { y: staffTop + 2.5 * lineSpacing, note: 'd/4' },      // D4 (레)
+        { y: staffTop + 3 * lineSpacing, note: 'c/4' },        // C4 (낮은 도)
+      ];
+      
+      // 가장 가까운 음표 찾기
+      let closestNote = noteMapping[0];
+      let minDistance = Math.abs(y - closestNote.y);
+      
+      for (const note of noteMapping) {
+        const distance = Math.abs(y - note.y);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestNote = note;
+        }
+      }
+      
+      return closestNote.note;
+    };
+    
+    const drawnNoteName = yToVexNote(drawnNote.y);
+    const targetNoteName = yToVexNote(currentProblem.targetY);
+    
+    // 음표 이름으로 정확히 비교
+    const isCorrect = drawnNoteName === targetNoteName;
     
     if (isCorrect) {
       setCorrectCount(prev => prev + 1);

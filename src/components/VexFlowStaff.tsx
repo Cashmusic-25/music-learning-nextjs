@@ -25,15 +25,21 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   const [audioEnabled, setAudioEnabled] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Web Audio API 초기화
+  // Web Audio API 초기화 (iOS 호환성 개선)
   const initAudio = () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    
-    // AudioContext가 suspended 상태라면 resume
-    if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
+    try {
+      if (!audioContextRef.current) {
+        // iOS Safari 호환성을 위한 webkitAudioContext 사용
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        audioContextRef.current = new AudioContextClass();
+        
+        // iOS에서 AudioContext가 자동으로 suspended 상태가 될 수 있음
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume();
+        }
+      }
+    } catch (error) {
+      console.error('AudioContext 초기화 실패:', error);
     }
   };
 
@@ -50,21 +56,27 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
     return baseFreq * octaveMultiplier;
   };
 
-  // 피아노 소리 재생
-  const playNote = (noteName: string) => {
-    // AudioContext 상태를 직접 확인
-    if (!audioContextRef.current || audioContextRef.current.state !== 'running') {
-      // console.log('Audio not ready');
-      return;
-    }
-    
+  // 피아노 소리 재생 (iOS 호환성 개선)
+  const playNote = async (noteName: string) => {
     try {
+      // AudioContext가 없거나 suspended 상태라면 재시도
       if (!audioContextRef.current) {
+        initAudio();
+        return;
+      }
+      
+      // iOS에서 AudioContext가 suspended 상태가 될 수 있으므로 resume 시도
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+      
+      // 여전히 running 상태가 아니라면 재시도
+      if (audioContextRef.current.state !== 'running') {
+        console.log('AudioContext 상태:', audioContextRef.current.state);
         return;
       }
       
       const frequency = noteToFrequency(noteName);
-      
       const now = audioContextRef.current.currentTime;
       const duration = 0.8;
       
@@ -94,7 +106,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // Release
         
         oscillator.start(now);
-                oscillator.stop(now + duration);
+        oscillator.stop(now + duration);
       });
     } catch (error) {
       console.error('Audio playback error:', error);
@@ -102,21 +114,29 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   };
 
   // 음표 클릭 이벤트 핸들러
-  const handleNoteClick = (noteName: string) => {
+  const handleNoteClick = async (noteName: string) => {
     // console.log('handleNoteClick called with:', noteName);
-    playNote(noteName);
+    await playNote(noteName);
   };
 
-  // 오디오 활성화
+  // 오디오 활성화 (iOS 호환성 개선)
   const enableAudio = async () => {
     try {
       initAudio();
       if (audioContextRef.current) {
-        await audioContextRef.current.resume();
+        // iOS에서 AudioContext resume이 필요할 수 있음
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
+        
+        // 테스트 소리 재생으로 오디오가 작동하는지 확인
+        await playNote('A/4');
         setAudioEnabled(true);
       }
     } catch (error) {
       console.error('Failed to enable audio:', error);
+      // iOS에서 오디오 활성화 실패 시 사용자에게 알림
+      alert('오디오 활성화에 실패했습니다. iOS에서는 설정 > Safari > 미디어 자동 재생을 허용으로 설정해주세요.');
     }
   };
 
