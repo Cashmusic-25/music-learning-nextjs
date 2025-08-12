@@ -11,10 +11,13 @@
     "deploy": "npm run build"
   },
   "dependencies": {
+    "abcjs": "^6.5.1",
+    "musescore": "^0.0.1",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "vexflow": "^5.0.0"
+    "vexflow": "^5.0.0",
+    "webmscore": "^1.2.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

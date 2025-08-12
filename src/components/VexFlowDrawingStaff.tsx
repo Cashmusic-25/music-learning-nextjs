@@ -13,6 +13,7 @@ interface VexFlowDrawingStaffProps {
   drawnNote: Note | null;
   onNoteDrawn: (note: Note) => void;
   answered: boolean;
+  isMobile?: boolean;
 }
 
 export default function VexFlowDrawingStaff({ 
@@ -20,7 +21,8 @@ export default function VexFlowDrawingStaff({
   targetY, 
   drawnNote, 
   onNoteDrawn, 
-  answered 
+  answered,
+  isMobile: propIsMobile
 }: VexFlowDrawingStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
@@ -28,28 +30,30 @@ export default function VexFlowDrawingStaff({
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(propIsMobile !== undefined ? propIsMobile : mobile);
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [propIsMobile]);
 
   const yToVexNote = (y: number): string => {
-    // 오선지의 정확한 위치에 맞는 음표 매핑 (높은 도부터 낮은 도까지만)
-    const staffTop = 100;
+    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
+    // 오선지의 첫 번째 선 위치를 기준으로 계산
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
     const lineSpacing = 20;
     
     const noteMapping = [
-      { y: staffTop - 0.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도)
-      { y: staffTop, note: 'b/4' },                          // B4 (시)
-      { y: staffTop + 0.5 * lineSpacing, note: 'a/4' },      // A4 (라)
-      { y: staffTop + lineSpacing, note: 'g/4' },            // G4 (솔)
-      { y: staffTop + 1.5 * lineSpacing, note: 'f/4' },      // F4 (파)
-      { y: staffTop + 2 * lineSpacing, note: 'e/4' },        // E4 (미)
-      { y: staffTop + 2.5 * lineSpacing, note: 'd/4' },      // D4 (레)
-      { y: staffTop + 3 * lineSpacing, note: 'c/4' },        // C4 (낮은 도)
+      { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
+      { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
+      { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
+      { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
+      { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
+      { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
+      { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
+      { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
     ];
     
     // 가장 가까운 음표 찾기
@@ -79,8 +83,9 @@ export default function VexFlowDrawingStaff({
     // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
     const minX = isMobile ? 60 : 100;
     const maxX = isMobile ? 220 : 700;
-    const minY = 70;  // 높은 도 위치
-    const maxY = 160; // 낮은 도 위치 (시보다 위로 제한)
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+    const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
+    const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
     
     if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
       onNoteDrawn({ x, y });
@@ -110,8 +115,9 @@ export default function VexFlowDrawingStaff({
       // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
       const minX = isMobile ? 60 : 100;
       const maxX = isMobile ? 220 : 700;
-      const minY = 70;  // 높은 도 위치
-      const maxY = 160; // 낮은 도 위치 (시보다 위로 제한)
+      const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+      const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
+      const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
       
       if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
         onNoteDrawn({ x, y });
@@ -250,12 +256,17 @@ export default function VexFlowDrawingStaff({
 
   return (
     <div className="flex flex-col items-center mb-4 md:mb-8 p-3 md:p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
-              <div 
+      <div className="relative w-full">
+        <div 
           ref={containerRef}
           className="border-2 border-gray-300 rounded-lg bg-white shadow-md mb-3 md:mb-4 w-full overflow-hidden cursor-crosshair"
           style={{ minHeight: isMobile ? '200px' : '280px' }}
           onClick={handleStaffClick}
         />
+        
+
+      </div>
+      
       <p className="text-xs md:text-sm text-gray-600 text-center">
         💡 오선지 위를 클릭하여 음표를 그려보세요!
       </p>

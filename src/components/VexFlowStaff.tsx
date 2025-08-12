@@ -17,9 +17,11 @@ interface VexFlowStaffProps {
   currentProblem: Problem | null;
   answered?: boolean;
   singleNote?: boolean;
+  correctNoteName?: string; // 정답 정보 추가
+  disableAudio?: boolean; // 오디오 기능 비활성화
 }
 
-export default function VexFlowStaff({ currentProblem, answered = false, singleNote = false }: VexFlowStaffProps) {
+export default function VexFlowStaff({ currentProblem, answered = false, singleNote = false, correctNoteName, disableAudio = false }: VexFlowStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -121,27 +123,38 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   };
 
   const getNoteName = (y: number): string => {
-    // 오선지의 정확한 위치에 맞는 음표 매핑
+    // 오선지의 정확한 위치에 맞는 음표 매핑 (확장된 범위)
     const staffTop = 100;
     const lineSpacing = 20;
     
-    // VexFlow와 동일한 옥타브로 매핑
+    // VexFlow와 동일한 옥타브로 매핑 (yToVexNote와 일치하도록 수정)
     const noteMapping = [
-      { y: staffTop - 0.5 * lineSpacing, note: 'C/4' },      // C5 → C4
-      { y: staffTop, note: 'B/3' },
-      { y: staffTop + 0.5 * lineSpacing, note: 'A/3' },
-      { y: staffTop + lineSpacing, note: 'G/3' },
-      { y: staffTop + 1.5 * lineSpacing, note: 'F/3' },
-      { y: staffTop + 2 * lineSpacing, note: 'E/3' },
-      { y: staffTop + 2.5 * lineSpacing, note: 'D/3' },
-      { y: staffTop + 3 * lineSpacing, note: 'C/3' },
-      { y: staffTop + 3.5 * lineSpacing, note: 'B/2' },
-      { y: staffTop + 4 * lineSpacing, note: 'A/2' },
-      { y: staffTop + 4.5 * lineSpacing, note: 'G/2' },
-      { y: staffTop + 5 * lineSpacing, note: 'F/2' },
-      { y: staffTop + 5.5 * lineSpacing, note: 'E/2' },
-      { y: staffTop + 6 * lineSpacing, note: 'D/2' },
-      { y: staffTop + 6.5 * lineSpacing, note: 'C/2' }
+      // 높은 부분: D5~G6
+      { y: staffTop - 4 * lineSpacing, note: 'G/6' },        // G6
+      { y: staffTop - 3.5 * lineSpacing, note: 'F/6' },      // F6
+      { y: staffTop - 3 * lineSpacing, note: 'E/6' },        // E6
+      { y: staffTop - 2.5 * lineSpacing, note: 'D/6' },      // D6
+      { y: staffTop - 2 * lineSpacing, note: 'C/6' },        // C6
+      { y: staffTop - 1.5 * lineSpacing, note: 'B/5' },      // B5
+      { y: staffTop - 1 * lineSpacing, note: 'A/5' },        // A5
+      { y: staffTop - 0.5 * lineSpacing, note: 'G/5' },      // G5
+      { y: staffTop, note: 'F/5' },                          // F5
+      { y: staffTop + 0.5 * lineSpacing, note: 'E/5' },      // E5
+      { y: staffTop + lineSpacing, note: 'D/5' },            // D5
+      
+      // 기존 범위: C5~C3
+      { y: staffTop + 1.5 * lineSpacing, note: 'C/5' },      // C5
+      { y: staffTop + 2 * lineSpacing, note: 'B/4' },        // B4
+      { y: staffTop + 2.5 * lineSpacing, note: 'A/4' },      // A4
+      { y: staffTop + 3 * lineSpacing, note: 'G/4' },        // G4
+      { y: staffTop + 3.5 * lineSpacing, note: 'F/4' },      // F4
+      { y: staffTop + 4 * lineSpacing, note: 'E/4' },        // E4
+      { y: staffTop + 4.5 * lineSpacing, note: 'D/4' },      // D4
+      { y: staffTop + 5 * lineSpacing, note: 'C/4' },        // C4
+      { y: staffTop + 5.5 * lineSpacing, note: 'B/3' },      // B3
+      { y: staffTop + 6 * lineSpacing, note: 'A/3' },        // A3
+      { y: staffTop + 6.5 * lineSpacing, note: 'G/3' },      // G3
+      { y: staffTop + 7 * lineSpacing, note: 'F/3' },        // F3
     ];
     
     // 가장 가까운 음표 찾기
@@ -160,27 +173,38 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   };
 
   const yToVexNote = (y: number): string => {
-    // 오선지의 정확한 위치에 맞는 음표 매핑
+    // 오선지의 정확한 위치에 맞는 음표 매핑 (확장된 범위)
     const staffTop = 100;
     const lineSpacing = 20;
     
-    // VexFlow 옥타브 조정 (+1씩 높임)
+    // VexFlow 옥타브 조정 (+1씩 높임) - D5~G6 범위 추가
     const noteMapping = [
-      { y: staffTop - 0.5 * lineSpacing, note: 'c/5' },      // C5
-      { y: staffTop, note: 'b/4' },
-      { y: staffTop + 0.5 * lineSpacing, note: 'a/4' },
-      { y: staffTop + lineSpacing, note: 'g/4' },
-      { y: staffTop + 1.5 * lineSpacing, note: 'f/4' },
-      { y: staffTop + 2 * lineSpacing, note: 'e/4' },
-      { y: staffTop + 2.5 * lineSpacing, note: 'd/4' },
-      { y: staffTop + 3 * lineSpacing, note: 'c/4' },
-      { y: staffTop + 3.5 * lineSpacing, note: 'b/3' },
-      { y: staffTop + 4 * lineSpacing, note: 'a/3' },
-      { y: staffTop + 4.5 * lineSpacing, note: 'g/3' },
-      { y: staffTop + 5 * lineSpacing, note: 'f/3' },
-      { y: staffTop + 5.5 * lineSpacing, note: 'e/3' },
-      { y: staffTop + 6 * lineSpacing, note: 'd/3' },
-      { y: staffTop + 6.5 * lineSpacing, note: 'c/3' }
+      // 높은 부분: D5~G6
+      { y: staffTop - 4 * lineSpacing, note: 'g/6' },        // G6
+      { y: staffTop - 3.5 * lineSpacing, note: 'f/6' },      // F6
+      { y: staffTop - 3 * lineSpacing, note: 'e/6' },        // E6
+      { y: staffTop - 2.5 * lineSpacing, note: 'd/6' },      // D6
+      { y: staffTop - 2 * lineSpacing, note: 'c/6' },        // C6
+      { y: staffTop - 1.5 * lineSpacing, note: 'b/5' },      // B5
+      { y: staffTop - 1 * lineSpacing, note: 'a/5' },        // A5
+      { y: staffTop - 0.5 * lineSpacing, note: 'g/5' },      // G5
+      { y: staffTop, note: 'f/5' },                          // F5
+      { y: staffTop + 0.5 * lineSpacing, note: 'e/5' },      // E5
+      { y: staffTop + lineSpacing, note: 'd/5' },            // D5
+      
+      // 기존 범위: C5~C3
+      { y: staffTop + 1.5 * lineSpacing, note: 'c/5' },      // C5
+      { y: staffTop + 2 * lineSpacing, note: 'b/4' },        // B4
+      { y: staffTop + 2.5 * lineSpacing, note: 'a/4' },      // A4
+      { y: staffTop + 3 * lineSpacing, note: 'g/4' },        // G4
+      { y: staffTop + 3.5 * lineSpacing, note: 'f/4' },      // F4
+      { y: staffTop + 4 * lineSpacing, note: 'e/4' },        // E4
+      { y: staffTop + 4.5 * lineSpacing, note: 'd/4' },      // D4
+      { y: staffTop + 5 * lineSpacing, note: 'c/4' },        // C4
+      { y: staffTop + 5.5 * lineSpacing, note: 'b/3' },      // B3
+      { y: staffTop + 6 * lineSpacing, note: 'a/3' },        // A3
+      { y: staffTop + 6.5 * lineSpacing, note: 'g/3' },      // G3
+      { y: staffTop + 7 * lineSpacing, note: 'f/3' },        // F3
     ];
     
     // 가장 가까운 음표 찾기
@@ -213,7 +237,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         // 모바일 반응형을 위한 크기 조정
         const isMobile = window.innerWidth < 768;
         const width = isMobile ? 350 : 800;
-        const height = isMobile ? 200 : 280;
+        const height = isMobile ? 180 : 220;
         
         // VexFlow 5.x 방식으로 렌더러 생성
         const renderer = new VexFlow.Renderer(containerRef.current!, VexFlow.Renderer.Backends.SVG);
@@ -223,7 +247,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         // 오선 생성 - 모바일 반응형
         const staveWidth = isMobile ? 250 : 700;
         const staveX = isMobile ? 25 : 50;
-        const staveY = isMobile ? 80 : 100;
+        const staveY = isMobile ? 40 : 60;
         
         const stave = new VexFlow.Stave(staveX, staveY, staveWidth);
         stave.addClef('treble');
@@ -401,13 +425,15 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
             if (answered) {
               const answerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
               answerText.setAttribute('x', isMobile ? '175' : '400');
-              answerText.setAttribute('y', isMobile ? '180' : '250');
+              answerText.setAttribute('y', isMobile ? '160' : '190');
               answerText.setAttribute('text-anchor', 'middle');
               answerText.setAttribute('fill', '#10b981');
               answerText.setAttribute('font-size', isMobile ? '14' : '16');
               answerText.setAttribute('font-weight', 'bold');
               answerText.setAttribute('font-family', 'Arial');
-              answerText.textContent = `정답: ${displayNote}`;
+              // correctNoteName이 제공되면 그것을 사용, 아니면 기존 방식 사용
+              const answerToShow = correctNoteName || displayNote;
+              answerText.textContent = `정답: ${answerToShow}`;
               svg.appendChild(answerText);
             }
           } else {
@@ -419,7 +445,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
             // 왼쪽 음표 이름 (클릭 가능)
             const leftText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             leftText.setAttribute('x', isMobile ? '100' : '200');
-            leftText.setAttribute('y', isMobile ? '150' : '180');
+            leftText.setAttribute('y', isMobile ? '140' : '170');
             leftText.setAttribute('text-anchor', 'middle');
             leftText.setAttribute('fill', '#374151');
             leftText.setAttribute('font-size', isMobile ? '12' : '14');
@@ -434,7 +460,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
             // 오른쪽 음표 이름 (클릭 가능)
             const rightText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             rightText.setAttribute('x', isMobile ? '300' : '600');
-            rightText.setAttribute('y', isMobile ? '150' : '180');
+            rightText.setAttribute('y', isMobile ? '140' : '170');
             rightText.setAttribute('text-anchor', 'middle');
             rightText.setAttribute('fill', '#374151');
             rightText.setAttribute('font-size', isMobile ? '12' : '14');
@@ -450,7 +476,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
             if (answered) {
               const compareText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
               compareText.setAttribute('x', isMobile ? '175' : '400');
-              compareText.setAttribute('y', isMobile ? '180' : '250');
+              compareText.setAttribute('y', isMobile ? '160' : '190');
               compareText.setAttribute('text-anchor', 'middle');
               compareText.setAttribute('fill', '#10b981');
               compareText.setAttribute('font-size', isMobile ? '14' : '16');
@@ -498,7 +524,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
 
   return (
     <div className="flex flex-col items-center mb-8 p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
-      {!audioEnabled && (
+      {!disableAudio && !audioEnabled && (
         <button
           onClick={enableAudio}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -506,7 +532,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
           🔊 오디오 활성화 (클릭하여 소리 재생 가능)
         </button>
       )}
-      {audioEnabled && (
+      {!disableAudio && audioEnabled && (
         <button
           onClick={() => playNote('A/4')}
           className="mb-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
@@ -517,14 +543,16 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
       <div 
         ref={containerRef}
         className="border-2 border-gray-300 rounded-lg bg-white shadow-md mb-4 w-full overflow-hidden"
-        style={{ minHeight: '280px' }}
+        style={{ minHeight: '220px' }}
       />
-      <p className="text-sm text-gray-600 text-center">
-        {audioEnabled 
-          ? "💡 음표를 클릭하면 피아노 소리를 들을 수 있습니다!"
-          : "🔇 먼저 오디오를 활성화해주세요!"
-        }
-      </p>
+      {!disableAudio && (
+        <p className="text-sm text-gray-600 text-center">
+          {audioEnabled 
+            ? "💡 음표를 클릭하면 피아노 소리를 들을 수 있습니다!"
+            : "🔇 먼저 오디오를 활성화해주세요!"
+          }
+        </p>
+      )}
     </div>
   );
 } 

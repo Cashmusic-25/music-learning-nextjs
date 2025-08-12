@@ -99,6 +99,66 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* 나머지음 훈련 퀴즈 */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎼</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                나머지음 훈련
+              </h3>
+              <p className="text-gray-600 mb-6">
+                높은음(D5~G6)과 낮은음(F3~B3)을 훈련하는 퀴즈를 통해 
+                더 넓은 음역의 악보 읽기 능력을 향상시킬 수 있습니다.
+              </p>
+              <Link 
+                href="/note-quiz-2"
+                className="inline-block bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors duration-200"
+              >
+                훈련 시작하기
+              </Link>
+            </div>
+          </div>
+
+          {/* 다중 선택 퀴즈 */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                다중 선택 퀴즈
+              </h3>
+              <p className="text-gray-600 mb-6">
+                F3~G6 범위에서 특정 음(도레미파솔라시)의 모든 옥타브를 선택하는 
+                다중 선택 퀴즈를 통해 음의 인식 능력을 향상시킬 수 있습니다.
+              </p>
+              <Link 
+                href="/note-quiz-3"
+                className="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200"
+              >
+                퀴즈 시작하기
+              </Link>
+            </div>
+          </div>
+
+                  {/* 음표와 쉼표 학습 */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+          <div className="text-center">
+            <div className="text-4xl mb-4">📚</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              음표와 쉼표 학습
+            </h3>
+            <p className="text-gray-600 mb-6">
+              4분음표, 2분음표, 온음표와 쉼표의 모양과 박자를
+              VexFlow를 통해 시각적으로 학습할 수 있습니다.
+            </p>
+            <Link
+              href="/note-learning"
+              className="inline-block bg-teal-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-200"
+            >
+              학습 & 퀴즈 시작하기
+            </Link>
+          </div>
+        </div>
+
           {/* 추가 연습 도구들 (향후 확장용) */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
             <div className="text-center">

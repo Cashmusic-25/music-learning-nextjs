@@ -26,6 +26,7 @@ export default function NoteDrawingPage() {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [drawnNote, setDrawnNote] = useState<Note | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 도레미파솔라시도 음계
   const solfegeNotes = ['도', '레', '미', '파', '솔', '라', '시'];
@@ -34,22 +35,22 @@ export default function NoteDrawingPage() {
   const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
 
   const getNoteY = (noteName: string): number => {
-    // 오선지의 정확한 위치에 맞는 음표 매핑
-    const staffTop = 100;
+    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
     const lineSpacing = 20;
     
     const noteMapping: { [key: string]: number } = {
-      'C': staffTop + 3 * lineSpacing,      // C4 (낮은 도)
-      'D': staffTop + 2.5 * lineSpacing,    // D4
-      'E': staffTop + 2 * lineSpacing,      // E4
-      'F': staffTop + 1.5 * lineSpacing,    // F4
-      'G': staffTop + lineSpacing,          // G4
-      'A': staffTop + 0.5 * lineSpacing,    // A4
-      'B': staffTop,                        // B4
-      'C5': staffTop - 0.5 * lineSpacing,   // C5 (높은 도)
+      'C': staffFirstLine + lineSpacing,           // C4 (낮은 도) - 첫 번째 선 아래 1칸
+      'D': staffFirstLine + 0.5 * lineSpacing,     // D4 - 첫 번째 선 아래 0.5칸
+      'E': staffFirstLine,                         // E4 - 첫 번째 선 위
+      'F': staffFirstLine - 0.5 * lineSpacing,     // F4 - 첫 번째 선 위 0.5칸
+      'G': staffFirstLine - lineSpacing,           // G4 - 첫 번째 선 위 1칸
+      'A': staffFirstLine - 1.5 * lineSpacing,     // A4 - 첫 번째 선 위 1.5칸
+      'B': staffFirstLine - 2 * lineSpacing,       // B4 - 첫 번째 선 위 2칸
+      'C5': staffFirstLine - 2.5 * lineSpacing,    // C5 (높은 도) - 첫 번째 선 위 2.5칸
     };
     
-    return noteMapping[noteName] || staffTop;
+    return noteMapping[noteName] || staffFirstLine;
   };
 
   const getSolfegeNoteName = (englishNote: string): string => {
@@ -85,19 +86,19 @@ export default function NoteDrawingPage() {
     setAnswered(true);
     
     // 그려진 음표의 Y 위치를 VexFlow 음표 이름으로 변환
-    const staffTop = 100;
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
     const lineSpacing = 20;
     
     const yToVexNote = (y: number): string => {
       const noteMapping = [
-        { y: staffTop - 0.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도)
-        { y: staffTop, note: 'b/4' },                          // B4 (시)
-        { y: staffTop + 0.5 * lineSpacing, note: 'a/4' },      // A4 (라)
-        { y: staffTop + lineSpacing, note: 'g/4' },            // G4 (솔)
-        { y: staffTop + 1.5 * lineSpacing, note: 'f/4' },      // F4 (파)
-        { y: staffTop + 2 * lineSpacing, note: 'e/4' },        // E4 (미)
-        { y: staffTop + 2.5 * lineSpacing, note: 'd/4' },      // D4 (레)
-        { y: staffTop + 3 * lineSpacing, note: 'c/4' },        // C4 (낮은 도)
+        { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
+        { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
+        { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
+        { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
+        { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
+        { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
+        { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
+        { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
       ];
       
       // 가장 가까운 음표 찾기
@@ -146,6 +147,16 @@ export default function NoteDrawingPage() {
   const accuracy = correctCount + incorrectCount > 0 
     ? Math.round((correctCount / (correctCount + incorrectCount)) * 100) 
     : 0;
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     generateNewProblem();
@@ -199,6 +210,7 @@ export default function NoteDrawingPage() {
                 drawnNote={drawnNote}
                 onNoteDrawn={handleNoteDrawn}
                 answered={answered}
+                isMobile={isMobile}
               />
             )}
           </div>

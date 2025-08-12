@@ -140,7 +140,7 @@ export default function NoteComparisonPage() {
             bestStreak={bestStreak}
           />
 
-          <VexFlowStaff currentProblem={currentProblem} answered={answered} />
+          <VexFlowStaff currentProblem={currentProblem} answered={answered} disableAudio={true} />
 
           <GameControls 
             answered={answered}
