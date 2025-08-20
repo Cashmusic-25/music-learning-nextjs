@@ -53,6 +53,37 @@ export default function NoteDrawingPage() {
     return noteMapping[noteName] || staffFirstLine;
   };
 
+  // 정답 확인용 음표 위치 해석 함수 (getNoteY와 동일한 로직 사용)
+  const yToVexNote = (y: number): string => {
+    const staffFirstLine = isMobile ? 150 : 180;
+    const lineSpacing = 20;
+    
+    const noteMapping = [
+      { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
+      { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
+      { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
+      { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
+      { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
+      { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
+      { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
+      { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
+    ];
+    
+    // 가장 가까운 음표 찾기
+    let closestNote = noteMapping[0];
+    let minDistance = Math.abs(y - closestNote.y);
+    
+    for (const note of noteMapping) {
+      const distance = Math.abs(y - note.y);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestNote = note;
+      }
+    }
+    
+    return closestNote.note;
+  };
+
   const getSolfegeNoteName = (englishNote: string): string => {
     const noteMap: { [key: string]: string } = {
       'C': '낮은 도', 'D': '레', 'E': '미', 'F': '파', 'G': '솔', 'A': '라', 'B': '시', 'C5': '높은 도'
@@ -84,37 +115,6 @@ export default function NoteDrawingPage() {
     if (answered || !currentProblem || !drawnNote) return;
     
     setAnswered(true);
-    
-    // 그려진 음표의 Y 위치를 VexFlow 음표 이름으로 변환
-    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
-    const lineSpacing = 20;
-    
-    const yToVexNote = (y: number): string => {
-      const noteMapping = [
-        { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
-        { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
-        { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
-        { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
-        { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
-        { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
-        { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
-        { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
-      ];
-      
-      // 가장 가까운 음표 찾기
-      let closestNote = noteMapping[0];
-      let minDistance = Math.abs(y - closestNote.y);
-      
-      for (const note of noteMapping) {
-        const distance = Math.abs(y - note.y);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestNote = note;
-        }
-      }
-      
-      return closestNote.note;
-    };
     
     const drawnNoteName = yToVexNote(drawnNote.y);
     const targetNoteName = yToVexNote(currentProblem.targetY);
