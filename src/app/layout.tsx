@@ -29,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={inter.variable}>
+      <head>
+        <script src="https://cdn.jsdelivr.net/npm/abcjs@6.5.1/dist/abcjs-basic-min.js"></script>
+      </head>
       <body className="font-inter antialiased">
         {children}
       </body>

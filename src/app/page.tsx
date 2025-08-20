@@ -159,6 +159,26 @@ export default function HomePage() {
           </div>
         </div>
 
+                  {/* 고급 음표 학습 */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🎼</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              고급 음표 학습
+            </h3>
+            <p className="text-gray-600 mb-6">
+              8분음표, 16분음표, 점 2분음표, 점 8분음표의 모양과 박자를
+              VexFlow를 통해 시각적으로 학습할 수 있습니다.
+            </p>
+            <Link
+              href="/note-learning-advanced"
+              className="inline-block bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors duration-200"
+            >
+              고급 학습 & 퀴즈 시작하기
+            </Link>
+          </div>
+        </div>
+
           {/* 추가 연습 도구들 (향후 확장용) */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
             <div className="text-center">

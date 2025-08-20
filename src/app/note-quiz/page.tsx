@@ -1,151 +1,104 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import VexFlowQuiz from '@/components/VexFlowQuiz';
+import VexFlowStaff from '@/components/VexFlowStaff';
+
+interface Note { x: number; y: number; }
+interface Problem { note: Note; correctAnswer: string; options: string[]; }
 
 export default function NoteQuizPage() {
-  const [currentLesson, setCurrentLesson] = useState<'notes' | 'rests'>('notes');
-  const [score, setScore] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const notes = [
-    { name: '4분음표', duration: '4', description: '1박자' },
-    { name: '2분음표', duration: '2', description: '2박자' },
-    { name: '온음표', duration: '1', description: '4박자' }
-  ];
+  // 도레미파솔라시도
+  const solfegeNotes = ['도', '레', '미', '파', '솔', '라', '시'];
+  // C4~C5 범위 (C4, D4, E4, F4, G4, A4, B4, C5)
+  const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
 
-  const rests = [
-    { name: '4분쉼표', duration: '4', description: '1박자' },
-    { name: '2분쉼표', duration: '2', description: '2박자' },
-    { name: '온쉼표', duration: '1', description: '4박자' }
-  ];
+  const staffTop = 100;
+  const lineSpacing = 20;
 
-  const currentItems = currentLesson === 'notes' ? notes : rests;
-
-  const switchLesson = (lesson: 'notes' | 'rests') => {
-    setCurrentLesson(lesson);
-    setScore(0);
-    setTotalQuestions(0);
-    setShowResult(false);
+  const getNoteY = (english: string): number => {
+    // VexFlowStaff의 yToVexNote 매핑과 정확히 일치하도록 좌표 지정
+    const map: Record<string, number> = {
+      'C': staffTop + 5 * lineSpacing,     // C4
+      'D': staffTop + 4.5 * lineSpacing,   // D4
+      'E': staffTop + 4 * lineSpacing,     // E4
+      'F': staffTop + 3.5 * lineSpacing,   // F4
+      'G': staffTop + 3 * lineSpacing,     // G4
+      'A': staffTop + 2.5 * lineSpacing,   // A4
+      'B': staffTop + 2 * lineSpacing,     // B4
+      'C5': staffTop + 1.5 * lineSpacing   // C5
+    };
+    return map[english];
   };
 
-  const handleQuizComplete = (finalScore: number, total: number) => {
-    setScore(finalScore);
-    setTotalQuestions(total);
-    setShowResult(true);
+  const getSolfege = (english: string): string => {
+    const map: Record<string, string> = { C: '도', D: '레', E: '미', F: '파', G: '솔', A: '라', B: '시', C5: '도' };
+    return map[english];
   };
 
-  const resetQuiz = () => {
-    setScore(0);
-    setTotalQuestions(0);
-    setShowResult(false);
+  const generateProblem = useCallback(() => {
+    const idx = Math.floor(Math.random() * englishNotes.length);
+    const targetEng = englishNotes[idx];
+    const targetY = getNoteY(targetEng);
+    const correct = getSolfege(targetEng);
+
+    // 4지선다: 정답 + 오답 3개
+    const pool = [...solfegeNotes.filter((n) => n !== correct)];
+    const wrongs = pool.sort(() => Math.random() - 0.5).slice(0, 3);
+    const options = [correct, ...wrongs].sort(() => Math.random() - 0.5);
+
+    setProblem({ note: { x: 400, y: targetY }, correctAnswer: correct, options });
+    setAnswered(false);
+    setFeedback(null);
+  }, []);
+
+  const check = (choice: string) => {
+    if (!problem || answered) return;
+    const ok = choice === problem.correctAnswer;
+    setAnswered(true);
+    setFeedback(ok ? '정답입니다! 🎉' : `틀렸습니다. 정답은 "${problem.correctAnswer}" 입니다.`);
+    setTimeout(() => {
+      generateProblem();
+    }, 1600);
   };
+
+  useEffect(() => { generateProblem(); }, [generateProblem]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          🎯 음표와 쉼표 퀴즈
-        </h1>
-        
-        {/* 홈으로 돌아가기 버튼 */}
+        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">🎯 음표 맞추기 퀴즈</h1>
+
         <div className="flex justify-center mb-6">
-          <Link
-            href="/"
-            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-medium"
-          >
-            🏠 홈으로 돌아가기
-          </Link>
+          <Link href="/" className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">🏠 홈으로</Link>
         </div>
 
-        {/* 학습하기 링크 */}
-        <div className="flex justify-center mb-8">
-          <Link
-            href="/note-learning"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
-          >
-            📚 학습하기로 돌아가기
-          </Link>
-        </div>
-        
-        {/* 레슨 선택 탭 */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-lg p-1 shadow-lg">
-            <button
-              onClick={() => switchLesson('notes')}
-              className={`px-6 py-3 rounded-md font-semibold transition-all ${
-                currentLesson === 'notes'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 hover:text-blue-500'
-              }`}
-            >
-              🎼 음표 퀴즈
-            </button>
-            <button
-              onClick={() => switchLesson('rests')}
-              className={`px-6 py-3 rounded-md font-semibold transition-all ${
-                currentLesson === 'rests'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 hover:text-blue-500'
-              }`}
-            >
-              🔇 쉼표 퀴즈
-            </button>
+        <div className="bg-white rounded-2xl p-6 shadow-xl mb-6">
+          {problem && (
+            <VexFlowStaff
+              currentProblem={{ leftNote: problem.note, rightNote: { x: 0, y: 0 }, correctAnswer: 'left' }}
+              answered={answered}
+              singleNote
+              correctNoteName={problem.correctAnswer}
+              disableAudio
+            />
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            {problem?.options.map((opt, i) => (
+              <button key={i} onClick={() => check(opt)} className={`py-3 px-4 rounded-lg font-semibold transition-all ${answered ? 'cursor-not-allowed opacity-70' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}>{opt}</button>
+            ))}
           </div>
-        </div>
 
-        {/* 퀴즈 결과 표시 */}
-        {showResult && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              🎉 퀴즈 완료!
-            </h2>
-            <div className="text-6xl mb-4">
-              {score === totalQuestions ? '🎯' : score >= totalQuestions * 0.7 ? '👍' : '💪'}
-            </div>
-            <p className="text-xl text-gray-600 mb-4">
-              점수: <span className="font-bold text-blue-600">{score}</span> / <span className="font-bold text-gray-600">{totalQuestions}</span>
-            </p>
-            <p className="text-lg text-gray-700 mb-6">
-              {score === totalQuestions 
-                ? '완벽합니다! 모든 문제를 맞췄어요! 🎊'
-                : score >= totalQuestions * 0.7 
-                ? '잘했어요! 조금만 더 노력하면 완벽할 거예요! 💪'
-                : '괜찮아요! 다시 한번 학습해보세요! 📚'
-              }
-            </p>
-            <button
-              onClick={resetQuiz}
-              className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold text-lg"
-            >
-              다시 도전하기
-            </button>
-          </div>
-        )}
-
-        {/* 퀴즈 컴포넌트 */}
-        {!showResult && (
-          <VexFlowQuiz
-            lessonType={currentLesson}
-            onQuizComplete={handleQuizComplete}
-          />
-        )}
-
-        {/* 학습 팁 */}
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-            💡 퀴즈 팁
-          </h3>
-          <ul className="text-yellow-700 space-y-1">
-            <li>• 음표/쉼표의 모양을 자세히 관찰하세요</li>
-            <li>• 박자 수를 세어보세요 (4분음표=1박자, 2분음표=2박자, 온음표=4박자)</li>
-            <li>• 쉼표는 소리를 내지 않는 휴식 시간입니다</li>
-            <li>• 틀려도 괜찮아요! 학습의 일부입니다</li>
-          </ul>
+          {feedback && (
+            <div className="text-center mt-4 p-3 rounded-lg bg-yellow-50 text-yellow-800 font-medium">{feedback}</div>
+          )}
         </div>
       </div>
     </div>
   );
-} 
+}
