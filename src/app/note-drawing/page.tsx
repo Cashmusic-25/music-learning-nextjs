@@ -26,13 +26,7 @@ export default function NoteDrawingPage() {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [drawnNote, setDrawnNote] = useState<Note | null>(null);
-  const [isMobile, setIsMobile] = useState(() => {
-    // 초기값을 즉시 계산하여 설정
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
+  const [isMobile, setIsMobile] = useState(false);
 
   // 도레미파솔라시도 음계
   const solfegeNotes = ['도', '레', '미', '파', '솔', '라', '시'];
@@ -41,8 +35,8 @@ export default function NoteDrawingPage() {
   const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
 
   const getNoteY = (noteName: string): number => {
-    // yToVexNote와 동일한 로직 사용하여 일관성 확보
-    const staffFirstLine = isMobile ? 150 : 180;
+    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
     const lineSpacing = 20;
     
     const noteMapping: { [key: string]: number } = {
@@ -56,51 +50,7 @@ export default function NoteDrawingPage() {
       'C5': staffFirstLine - 2.5 * lineSpacing,    // C5 (높은 도) - 첫 번째 선 위 2.5칸
     };
     
-    // 디버깅을 위한 로그 추가
-    console.log('getNoteY 입력:', noteName);
-    console.log('getNoteY staffFirstLine:', staffFirstLine);
-    console.log('getNoteY 결과 Y:', noteMapping[noteName] || staffFirstLine);
-    
     return noteMapping[noteName] || staffFirstLine;
-  };
-
-  // 정답 확인용 음표 위치 해석 함수 (getNoteY와 동일한 로직 사용)
-  const yToVexNote = (y: number): string => {
-    const staffFirstLine = isMobile ? 150 : 180;
-    const lineSpacing = 20;
-    
-    const noteMapping = [
-      { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
-      { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
-      { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
-      { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
-      { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
-      { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
-      { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
-      { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
-    ];
-    
-    // 디버깅을 위한 로그 추가
-    console.log('yToVexNote 입력 Y:', y);
-    console.log('staffFirstLine:', staffFirstLine);
-    console.log('lineSpacing:', lineSpacing);
-    console.log('가능한 음표 위치들:', noteMapping.map(n => `${n.note}: ${n.y}`));
-    
-    // 가장 가까운 음표 찾기
-    let closestNote = noteMapping[0];
-    let minDistance = Math.abs(y - closestNote.y);
-    
-    for (const note of noteMapping) {
-      const distance = Math.abs(y - note.y);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestNote = note;
-      }
-    }
-    
-    console.log('선택된 음표:', closestNote.note, 'Y 위치:', closestNote.y, '거리:', minDistance);
-    
-    return closestNote.note;
   };
 
   const getSolfegeNoteName = (englishNote: string): string => {
@@ -112,19 +62,8 @@ export default function NoteDrawingPage() {
 
   const generateNewProblem = useCallback(() => {
     const randomNote = englishNotes[Math.floor(Math.random() * englishNotes.length)];
-    
-    // 디버깅을 위한 로그 추가
-    console.log('=== generateNewProblem 디버깅 ===');
-    console.log('선택된 음표:', randomNote);
-    console.log('현재 isMobile 상태:', isMobile);
-    console.log('현재 window.innerWidth:', typeof window !== 'undefined' ? window.innerWidth : 'undefined');
-    
     const targetY = getNoteY(randomNote);
     const targetSolfege = getSolfegeNoteName(randomNote);
-    
-    console.log('getNoteY 결과:', targetY);
-    console.log('targetSolfege:', targetSolfege);
-    console.log('=============================');
     
     const newProblem: Problem = {
       targetNote: targetSolfege,
@@ -146,17 +85,39 @@ export default function NoteDrawingPage() {
     
     setAnswered(true);
     
+    // 그려진 음표의 Y 위치를 VexFlow 음표 이름으로 변환
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+    const lineSpacing = 20;
+    
+    const yToVexNote = (y: number): string => {
+      const noteMapping = [
+        { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
+        { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
+        { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
+        { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
+        { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
+        { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
+        { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
+        { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
+      ];
+      
+      // 가장 가까운 음표 찾기
+      let closestNote = noteMapping[0];
+      let minDistance = Math.abs(y - closestNote.y);
+      
+      for (const note of noteMapping) {
+        const distance = Math.abs(y - note.y);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestNote = note;
+        }
+      }
+      
+      return closestNote.note;
+    };
+    
     const drawnNoteName = yToVexNote(drawnNote.y);
     const targetNoteName = yToVexNote(currentProblem.targetY);
-    
-    // 디버깅을 위한 로그 추가
-    console.log('=== 음표 그리기 디버깅 ===');
-    console.log('그려진 음표 Y 위치:', drawnNote.y);
-    console.log('그려진 음표 해석:', drawnNoteName);
-    console.log('정답 Y 위치:', currentProblem.targetY);
-    console.log('정답 해석:', targetNoteName);
-    console.log('정답 여부:', drawnNoteName === targetNoteName);
-    console.log('========================');
     
     // 음표 이름으로 정확히 비교
     const isCorrect = drawnNoteName === targetNoteName;
@@ -189,33 +150,17 @@ export default function NoteDrawingPage() {
 
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      const prevMobile = isMobile;
-      
-      console.log('checkMobile 호출:', { 
-        windowWidth: window.innerWidth, 
-        mobile, 
-        prevMobile, 
-        changed: mobile !== prevMobile 
-      });
-      
-      setIsMobile(mobile);
-      
-      // isMobile 상태가 변경되었을 때만 문제 재생성
-      if (mobile !== prevMobile) {
-        console.log('isMobile 상태 변경됨, 문제 재생성');
-        generateNewProblem();
-      }
+      setIsMobile(window.innerWidth < 768);
     };
     
-    // 초기 체크 및 이벤트 리스너 등록
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
-  }, [isMobile, generateNewProblem]);
+  }, []);
 
-  // 초기 문제 생성을 위한 useEffect 제거 (위에서 처리)
+  useEffect(() => {
+    generateNewProblem();
+  }, [generateNewProblem]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-600 text-gray-800">
