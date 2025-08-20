@@ -69,6 +69,12 @@ export default function NoteDrawingPage() {
       { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
     ];
     
+    // 디버깅을 위한 로그 추가
+    console.log('yToVexNote 입력 Y:', y);
+    console.log('staffFirstLine:', staffFirstLine);
+    console.log('lineSpacing:', lineSpacing);
+    console.log('가능한 음표 위치들:', noteMapping.map(n => `${n.note}: ${n.y}`));
+    
     // 가장 가까운 음표 찾기
     let closestNote = noteMapping[0];
     let minDistance = Math.abs(y - closestNote.y);
@@ -80,6 +86,8 @@ export default function NoteDrawingPage() {
         closestNote = note;
       }
     }
+    
+    console.log('선택된 음표:', closestNote.note, 'Y 위치:', closestNote.y, '거리:', minDistance);
     
     return closestNote.note;
   };
@@ -118,6 +126,15 @@ export default function NoteDrawingPage() {
     
     const drawnNoteName = yToVexNote(drawnNote.y);
     const targetNoteName = yToVexNote(currentProblem.targetY);
+    
+    // 디버깅을 위한 로그 추가
+    console.log('=== 음표 그리기 디버깅 ===');
+    console.log('그려진 음표 Y 위치:', drawnNote.y);
+    console.log('그려진 음표 해석:', drawnNoteName);
+    console.log('정답 Y 위치:', currentProblem.targetY);
+    console.log('정답 해석:', targetNoteName);
+    console.log('정답 여부:', drawnNoteName === targetNoteName);
+    console.log('========================');
     
     // 음표 이름으로 정확히 비교
     const isCorrect = drawnNoteName === targetNoteName;
