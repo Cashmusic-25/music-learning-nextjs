@@ -271,6 +271,18 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
                 stroke-width: 1.5px !important;
                 stroke-dasharray: none !important;
               }
+              /* 오선 양옆 점선 완전 제거 */
+              .vf-stave line[stroke-dasharray] {
+                stroke-dasharray: none !important;
+              }
+              /* 모든 선 요소의 점선 제거 */
+              svg line {
+                stroke-dasharray: none !important;
+              }
+              /* 오선 관련 모든 요소의 점선 제거 */
+              .vf-stave * {
+                stroke-dasharray: none !important;
+              }
             `;
             svg.appendChild(style);
           }
