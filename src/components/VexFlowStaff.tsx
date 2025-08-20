@@ -259,29 +259,54 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
           if (svg) {
             const style = document.createElement('style');
             style.textContent = `
+              /* 모든 선 요소를 완전한 실선으로 만들기 */
               .vf-stave .vf-stavenote .vf-stem,
               .vf-stave .vf-stavenote .vf-notehead,
               .vf-stave .vf-clef,
               .vf-stave .vf-stave {
                 stroke: #000 !important;
                 stroke-width: 1.5px !important;
+                stroke-opacity: 1 !important;
+                fill-opacity: 1 !important;
               }
-              .vf-stave .vf-stave line {
+              
+              /* 오선 관련 모든 선 요소 강제 설정 */
+              .vf-stave .vf-stave line,
+              .vf-stave line,
+              .vf-stave .vf-stavenote line,
+              .vf-stave .vf-clef line {
                 stroke: #000 !important;
                 stroke-width: 1.5px !important;
                 stroke-dasharray: none !important;
+                stroke-opacity: 1 !important;
+                fill: #000 !important;
+                fill-opacity: 1 !important;
               }
-              /* 오선 양옆 점선 완전 제거 */
-              .vf-stave line[stroke-dasharray] {
+              
+              /* 점선 완전 제거 */
+              .vf-stave line[stroke-dasharray],
+              svg line[stroke-dasharray] {
                 stroke-dasharray: none !important;
               }
+              
               /* 모든 선 요소의 점선 제거 */
               svg line {
                 stroke-dasharray: none !important;
+                stroke-opacity: 1 !important;
               }
-              /* 오선 관련 모든 요소의 점선 제거 */
+              
+              /* 오선 관련 모든 요소 강제 설정 */
               .vf-stave * {
                 stroke-dasharray: none !important;
+                stroke-opacity: 1 !important;
+                fill-opacity: 1 !important;
+              }
+              
+              /* 투명도 완전 제거 */
+              .vf-stave *[stroke-opacity],
+              .vf-stave *[fill-opacity] {
+                stroke-opacity: 1 !important;
+                fill-opacity: 1 !important;
               }
             `;
             svg.appendChild(style);
