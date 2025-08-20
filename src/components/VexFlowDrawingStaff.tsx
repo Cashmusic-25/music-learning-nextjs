@@ -40,9 +40,8 @@ export default function VexFlowDrawingStaff({
   }, [propIsMobile]);
 
   const yToVexNote = (y: number): string => {
-    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
-    // 오선지의 첫 번째 선 위치를 기준으로 계산
-    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+    // page.tsx와 동일한 위치 계산 로직 사용
+    const staffFirstLine = isMobile ? 150 : 180;
     const lineSpacing = 20;
     
     const noteMapping = [
