@@ -261,7 +261,15 @@ export default function VexFlowDrawingStaff({
     return () => {
       container.removeEventListener('touchstart', handleTouchStartDirect);
     };
-  }, [drawnNote, answered, targetNote, isMobile, onNoteDrawn]);
+  }, [drawnNote, answered, targetNote, onNoteDrawn]);
+
+  // isMobile 상태 변경 시에만 컨테이너 크기 조정
+  useEffect(() => {
+    if (containerRef.current) {
+      const container = containerRef.current;
+      container.style.minHeight = isMobile ? '200px' : '280px';
+    }
+  }, [isMobile]);
 
   return (
     <div className="flex flex-col items-center mb-4 md:mb-8 p-3 md:p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">
