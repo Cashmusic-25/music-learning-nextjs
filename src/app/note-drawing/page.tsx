@@ -35,8 +35,8 @@ export default function NoteDrawingPage() {
   const englishNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C5'];
 
   const getNoteY = (noteName: string): number => {
-    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
-    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+    // yToVexNote와 동일한 로직 사용하여 일관성 확보
+    const staffFirstLine = isMobile ? 150 : 180;
     const lineSpacing = 20;
     
     const noteMapping: { [key: string]: number } = {
@@ -49,6 +49,11 @@ export default function NoteDrawingPage() {
       'B': staffFirstLine - 2 * lineSpacing,       // B4 - 첫 번째 선 위 2칸
       'C5': staffFirstLine - 2.5 * lineSpacing,    // C5 (높은 도) - 첫 번째 선 위 2.5칸
     };
+    
+    // 디버깅을 위한 로그 추가
+    console.log('getNoteY 입력:', noteName);
+    console.log('getNoteY staffFirstLine:', staffFirstLine);
+    console.log('getNoteY 결과 Y:', noteMapping[noteName] || staffFirstLine);
     
     return noteMapping[noteName] || staffFirstLine;
   };
