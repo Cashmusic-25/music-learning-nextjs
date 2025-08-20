@@ -77,7 +77,11 @@ export default function VexFlowDrawingStaff({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // console.log('Click - X:', x, 'Y:', y);
+    // 디버깅을 위한 로그 추가
+    console.log('=== 클릭 이벤트 디버깅 ===');
+    console.log('클라이언트 좌표:', e.clientX, e.clientY);
+    console.log('컨테이너 위치:', rect.left, rect.top);
+    console.log('계산된 좌표:', x, y);
     
     // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
     const minX = isMobile ? 60 : 100;
@@ -86,9 +90,15 @@ export default function VexFlowDrawingStaff({
     const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
     const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
     
+    console.log('오선지 영역:', { minX, maxX, minY, maxY });
+    console.log('staffFirstLine:', staffFirstLine);
+    console.log('클릭이 오선지 영역 내부인가?', x >= minX && x <= maxX && y >= minY && y <= maxY);
+    
     if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+      console.log('음표 그리기 호출:', { x, y });
       onNoteDrawn({ x, y });
     }
+    console.log('========================');
   };
 
 
