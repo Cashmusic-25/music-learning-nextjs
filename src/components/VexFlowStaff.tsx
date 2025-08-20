@@ -253,6 +253,29 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         stave.addClef('treble');
         stave.setContext(context).draw();
 
+        // 오선을 실선으로 만들기 위한 CSS 스타일 적용
+        setTimeout(() => {
+          const svg = containerRef.current?.querySelector('svg');
+          if (svg) {
+            const style = document.createElement('style');
+            style.textContent = `
+              .vf-stave .vf-stavenote .vf-stem,
+              .vf-stave .vf-stavenote .vf-notehead,
+              .vf-stave .vf-clef,
+              .vf-stave .vf-stave {
+                stroke: #000 !important;
+                stroke-width: 1.5px !important;
+              }
+              .vf-stave .vf-stave line {
+                stroke: #000 !important;
+                stroke-width: 1.5px !important;
+                stroke-dasharray: none !important;
+              }
+            `;
+            svg.appendChild(style);
+          }
+        }, 100);
+
         if (singleNote) {
           // 단일 음표 모드
           const singleNote = yToVexNote(currentProblem.leftNote.y);
