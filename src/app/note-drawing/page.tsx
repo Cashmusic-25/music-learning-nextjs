@@ -106,8 +106,19 @@ export default function NoteDrawingPage() {
 
   const generateNewProblem = useCallback(() => {
     const randomNote = englishNotes[Math.floor(Math.random() * englishNotes.length)];
+    
+    // 디버깅을 위한 로그 추가
+    console.log('=== generateNewProblem 디버깅 ===');
+    console.log('선택된 음표:', randomNote);
+    console.log('현재 isMobile 상태:', isMobile);
+    console.log('현재 window.innerWidth:', typeof window !== 'undefined' ? window.innerWidth : 'undefined');
+    
     const targetY = getNoteY(randomNote);
     const targetSolfege = getSolfegeNoteName(randomNote);
+    
+    console.log('getNoteY 결과:', targetY);
+    console.log('targetSolfege:', targetSolfege);
+    console.log('=============================');
     
     const newProblem: Problem = {
       targetNote: targetSolfege,
@@ -118,7 +129,7 @@ export default function NoteDrawingPage() {
     setAnswered(false);
     setFeedback({ message: '', type: null });
     setDrawnNote(null);
-  }, []);
+  }, [isMobile]);
 
   const handleNoteDrawn = (note: Note) => {
     setDrawnNote(note);
@@ -172,17 +183,21 @@ export default function NoteDrawingPage() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // isMobile 상태가 설정된 후에 첫 번째 문제 생성
+      if (mobile !== isMobile) {
+        generateNewProblem();
+      }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isMobile, generateNewProblem]);
 
-  useEffect(() => {
-    generateNewProblem();
-  }, [generateNewProblem]);
+  // 초기 문제 생성을 위한 useEffect 제거 (위에서 처리)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-600 text-gray-800">
