@@ -26,7 +26,13 @@ export default function NoteDrawingPage() {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [drawnNote, setDrawnNote] = useState<Note | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    // 초기값을 즉시 계산하여 설정
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
   // 도레미파솔라시도 음계
   const solfegeNotes = ['도', '레', '미', '파', '솔', '라', '시'];
@@ -184,16 +190,28 @@ export default function NoteDrawingPage() {
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
+      const prevMobile = isMobile;
+      
+      console.log('checkMobile 호출:', { 
+        windowWidth: window.innerWidth, 
+        mobile, 
+        prevMobile, 
+        changed: mobile !== prevMobile 
+      });
+      
       setIsMobile(mobile);
       
-      // isMobile 상태가 설정된 후에 첫 번째 문제 생성
-      if (mobile !== isMobile) {
+      // isMobile 상태가 변경되었을 때만 문제 재생성
+      if (mobile !== prevMobile) {
+        console.log('isMobile 상태 변경됨, 문제 재생성');
         generateNewProblem();
       }
     };
     
+    // 초기 체크 및 이벤트 리스너 등록
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
     return () => window.removeEventListener('resize', checkMobile);
   }, [isMobile, generateNewProblem]);
 
