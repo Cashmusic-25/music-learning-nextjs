@@ -39,6 +39,14 @@ canvas {
   image-rendering: crisp-edges;
 }
 
+/* SVG 렌더 정밀도 및 스트로크 스케일 방지 (VexFlow 안정화) */
+svg {
+  shape-rendering: geometricPrecision;
+}
+svg path, svg line, svg polyline, svg rect, svg circle, svg ellipse {
+  vector-effect: non-scaling-stroke;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .container {

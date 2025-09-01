@@ -40,8 +40,9 @@ export default function VexFlowDrawingStaff({
   }, [propIsMobile]);
 
   const yToVexNote = (y: number): string => {
-    // page.tsx와 동일한 위치 계산 로직 사용
-    const staffFirstLine = isMobile ? 150 : 180;
+    // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
+    // 오선지의 첫 번째 선 위치를 기준으로 계산
+    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
     const lineSpacing = 20;
     
     const noteMapping = [
@@ -77,11 +78,7 @@ export default function VexFlowDrawingStaff({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // 디버깅을 위한 로그 추가
-    console.log('=== 클릭 이벤트 디버깅 ===');
-    console.log('클라이언트 좌표:', e.clientX, e.clientY);
-    console.log('컨테이너 위치:', rect.left, rect.top);
-    console.log('계산된 좌표:', x, y);
+    // console.log('Click - X:', x, 'Y:', y);
     
     // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
     const minX = isMobile ? 60 : 100;
@@ -90,15 +87,9 @@ export default function VexFlowDrawingStaff({
     const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
     const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
     
-    console.log('오선지 영역:', { minX, maxX, minY, maxY });
-    console.log('staffFirstLine:', staffFirstLine);
-    console.log('클릭이 오선지 영역 내부인가?', x >= minX && x <= maxX && y >= minY && y <= maxY);
-    
     if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-      console.log('음표 그리기 호출:', { x, y });
       onNoteDrawn({ x, y });
     }
-    console.log('========================');
   };
 
 
@@ -261,15 +252,7 @@ export default function VexFlowDrawingStaff({
     return () => {
       container.removeEventListener('touchstart', handleTouchStartDirect);
     };
-  }, [drawnNote, answered, targetNote, onNoteDrawn]);
-
-  // isMobile 상태 변경 시에만 컨테이너 크기 조정
-  useEffect(() => {
-    if (containerRef.current) {
-      const container = containerRef.current;
-      container.style.minHeight = isMobile ? '200px' : '280px';
-    }
-  }, [isMobile]);
+  }, [drawnNote, answered, targetNote, isMobile, onNoteDrawn]);
 
   return (
     <div className="flex flex-col items-center mb-4 md:mb-8 p-3 md:p-5 bg-gray-50 rounded-2xl border-2 border-gray-200">

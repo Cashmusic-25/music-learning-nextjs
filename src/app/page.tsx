@@ -139,6 +139,25 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* 계이름 ↔ 알파벳 학습 */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🔤</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                계이름 ↔ 알파벳 학습
+              </h3>
+              <p className="text-gray-600 mb-6">
+                도레미파솔라시와 C D E F G A B의 매칭을 학습하고, 양방향 퀴즈로 복습해보세요.
+              </p>
+              <Link 
+                href="/solfege-learning"
+                className="inline-block bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors duration-200"
+              >
+                학습 & 퀴즈 시작하기
+              </Link>
+            </div>
+          </div>
+
                   {/* 음표와 쉼표 학습 */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
           <div className="text-center">
@@ -179,42 +198,22 @@ export default function HomePage() {
           </div>
         </div>
 
-          {/* 추가 연습 도구들 (향후 확장용) */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
+          {/* 딴이름 한소리 훈련 (맨 마지막) */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="text-center">
-              <div className="text-4xl mb-4">🎹</div>
+              <div className="text-4xl mb-4">♯♭</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                피아노 연습
+                딴이름 한소리 훈련
               </h3>
               <p className="text-gray-600 mb-6">
-                가상 피아노를 통해 기본적인 피아노 연습을 할 수 있습니다.
-                (준비 중)
+                C# = Db 처럼, 기보는 다르지만 같은 소리를 빠르게 매칭해보세요.
               </p>
-              <button 
-                disabled
-                className="inline-block bg-gray-400 text-white px-8 py-3 rounded-lg font-semibold cursor-not-allowed"
+              <Link 
+                href="/enharmonic-training"
+                className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-200"
               >
-                준비 중
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 opacity-50">
-            <div className="text-center">
-              <div className="text-4xl mb-4">🎸</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                기타 연습
-              </h3>
-              <p className="text-gray-600 mb-6">
-                가상 기타를 통해 기본적인 기타 연습을 할 수 있습니다.
-                (준비 중)
-              </p>
-              <button 
-                disabled
-                className="inline-block bg-gray-400 text-white px-8 py-3 rounded-lg font-semibold cursor-not-allowed"
-              >
-                준비 중
-              </button>
+                시작하기
+              </Link>
             </div>
           </div>
         </div>
@@ -240,10 +239,10 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-4">📊</div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">진도 관리</h4>
+              <div className="text-3xl mb-4">🎤</div>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">라이브 질의응답</h4>
               <p className="text-gray-600">
-                연습 결과를 기록하고 진도를 관리할 수 있습니다.
+                라이브를 통해 강사와 실시간으로 질의응답이 가능합니다.
               </p>
             </div>
           </div>
@@ -254,7 +253,7 @@ export default function HomePage() {
       <footer className="bg-gray-800 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-300">
-            © 2024 캐시뮤직 온라인. 모든 권리 보유.
+            © 2025 캐시뮤직 온라인. 모든 권리 보유.
           </p>
         </div>
       </footer>

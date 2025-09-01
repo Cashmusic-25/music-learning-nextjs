@@ -26,6 +26,9 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const [renderTick, setRenderTick] = useState(0);
+  const rafIdRef = useRef<number | null>(null);
+  const rafIdRef2 = useRef<number | null>(null);
 
   // Web Audio API 초기화
   const initAudio = () => {
@@ -253,66 +256,6 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         stave.addClef('treble');
         stave.setContext(context).draw();
 
-        // 오선을 실선으로 만들기 위한 CSS 스타일 적용
-        setTimeout(() => {
-          const svg = containerRef.current?.querySelector('svg');
-          if (svg) {
-            const style = document.createElement('style');
-            style.textContent = `
-              /* 모든 선 요소를 완전한 실선으로 만들기 */
-              .vf-stave .vf-stavenote .vf-stem,
-              .vf-stave .vf-stavenote .vf-notehead,
-              .vf-stave .vf-clef,
-              .vf-stave .vf-stave {
-                stroke: #000 !important;
-                stroke-width: 1.5px !important;
-                stroke-opacity: 1 !important;
-                fill-opacity: 1 !important;
-              }
-              
-              /* 오선 관련 모든 선 요소 강제 설정 */
-              .vf-stave .vf-stave line,
-              .vf-stave line,
-              .vf-stave .vf-stavenote line,
-              .vf-stave .vf-clef line {
-                stroke: #000 !important;
-                stroke-width: 1.5px !important;
-                stroke-dasharray: none !important;
-                stroke-opacity: 1 !important;
-                fill: #000 !important;
-                fill-opacity: 1 !important;
-              }
-              
-              /* 점선 완전 제거 */
-              .vf-stave line[stroke-dasharray],
-              svg line[stroke-dasharray] {
-                stroke-dasharray: none !important;
-              }
-              
-              /* 모든 선 요소의 점선 제거 */
-              svg line {
-                stroke-dasharray: none !important;
-                stroke-opacity: 1 !important;
-              }
-              
-              /* 오선 관련 모든 요소 강제 설정 */
-              .vf-stave * {
-                stroke-dasharray: none !important;
-                stroke-opacity: 1 !important;
-                fill-opacity: 1 !important;
-              }
-              
-              /* 투명도 완전 제거 */
-              .vf-stave *[stroke-opacity],
-              .vf-stave *[fill-opacity] {
-                stroke-opacity: 1 !important;
-                fill-opacity: 1 !important;
-              }
-            `;
-            svg.appendChild(style);
-          }
-        }, 100);
-
         if (singleNote) {
           // 단일 음표 모드
           const singleNote = yToVexNote(currentProblem.leftNote.y);
@@ -477,6 +420,12 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         // 음표 이름 표시
         const svg = containerRef.current!.querySelector('svg');
         if (svg) {
+          // 렌더 후 SVG 스케일링/정밀도 안정화
+          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+          svg.setAttribute('shape-rendering', 'geometricPrecision');
+          (svg as SVGElement).style.width = `${width}px`;
+          (svg as SVGElement).style.height = `${height}px`;
+          (svg as SVGElement).style.maxWidth = '100%';
           if (singleNote) {
             // 단일 음표 모드에서는 음표 이름을 표시하지 않음 (퀴즈이므로)
             const displayNote = getNoteName(currentProblem.leftNote.y);
@@ -546,26 +495,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
               svg.appendChild(compareText);
             }
 
-            // 높이 표시선 (점선)
-            const leftGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            leftGuideLine.setAttribute('x1', '50');
-            leftGuideLine.setAttribute('y1', '120');
-            leftGuideLine.setAttribute('x2', '180');
-            leftGuideLine.setAttribute('y2', '120');
-            leftGuideLine.setAttribute('stroke', '#e5e7eb');
-            leftGuideLine.setAttribute('stroke-width', '1');
-            leftGuideLine.setAttribute('stroke-dasharray', '5,5');
-            svg.appendChild(leftGuideLine);
-
-            const rightGuideLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            rightGuideLine.setAttribute('x1', '620');
-            rightGuideLine.setAttribute('y1', '120');
-            rightGuideLine.setAttribute('x2', '750');
-            rightGuideLine.setAttribute('y2', '120');
-            rightGuideLine.setAttribute('stroke', '#e5e7eb');
-            rightGuideLine.setAttribute('stroke-width', '1');
-            rightGuideLine.setAttribute('stroke-dasharray', '5,5');
-            svg.appendChild(rightGuideLine);
+            
           }
         }
       } catch (error) {
@@ -577,8 +507,32 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
       }
     };
 
-    loadVexFlow();
-  }, [currentProblem, answered]);
+    // 레이아웃이 안정된 다음 프레임에 렌더
+    rafIdRef.current = window.requestAnimationFrame(() => {
+      rafIdRef2.current = window.requestAnimationFrame(() => {
+        void loadVexFlow();
+      });
+    });
+
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      if (rafIdRef2.current) cancelAnimationFrame(rafIdRef2.current);
+    };
+  }, [currentProblem, answered, renderTick]);
+
+  // 레이아웃 변화(리사이즈/컨테이너 크기 변경)에 대응하여 재렌더링
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const handleResize = () => setRenderTick((v) => v + 1);
+    window.addEventListener('resize', handleResize);
+    const ResizeObserverCtor = (window as any).ResizeObserver;
+    const ro = ResizeObserverCtor ? new ResizeObserverCtor(() => handleResize()) : null;
+    if (ro && containerRef.current) ro.observe(containerRef.current);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (ro) ro.disconnect();
+    };
+  }, []);
 
   if (!currentProblem) return null;
 
