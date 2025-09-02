@@ -18,6 +18,8 @@ export default function HomePage() {
               음악 연습 어플 사이트
             </div>
           </div>
+
+          
         </div>
       </header>
 
@@ -59,6 +61,8 @@ export default function HomePage() {
             </div>
           </div>
 
+          
+
           {/* 음표 맞추기 퀴즈 */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="text-center">
@@ -78,6 +82,8 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+
+          
 
           {/* 음표 그리기 퀴즈 */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
@@ -198,7 +204,7 @@ export default function HomePage() {
           </div>
         </div>
 
-          {/* 딴이름 한소리 훈련 (맨 마지막) */}
+          {/* 딴이름 한소리 훈련 */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="text-center">
               <div className="text-4xl mb-4">♯♭</div>
@@ -216,7 +222,84 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+
+          {/* 음표 맞추기 퀴즈 (낮은음자리표) */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎵</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                음표 맞추기 퀴즈 (낮은음자리표)
+              </h3>
+              <p className="text-gray-600 mb-6">
+                낮은음자리표 C3~C4 범위의 음표를 보고 계이름을 맞춰보세요.
+              </p>
+              <Link 
+                href="/note-quiz-bass"
+                className="inline-block bg-teal-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-200"
+              >
+                퀴즈 시작하기
+              </Link>
+            </div>
+          </div>
+
+          {/* 음표 그리기 퀴즈 (낮은음자리표) */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎨</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                음표 그리기 퀴즈 (낮은음자리표)
+              </h3>
+              <p className="text-gray-600 mb-6">
+                낮은음자리표 C3~C4 범위의 목표 음표를 직접 그려보세요.
+              </p>
+              <Link 
+                href="/note-drawing-bass"
+                className="inline-block bg-teal-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-200"
+              >
+                그리기 시작하기
+              </Link>
+            </div>
+          </div>
+          {/* 나머지음 훈련 (낮은음자리표) */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎼</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                나머지음 훈련 (낮은음자리표)
+              </h3>
+              <p className="text-gray-600 mb-6">
+                낮은음자리표 D4~G4, F2~B2 범위를 훈련해보세요.
+              </p>
+              <Link 
+                href="/note-quiz-2-bass"
+                className="inline-block bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors duration-200"
+              >
+                훈련 시작하기
+              </Link>
+            </div>
+          </div>
+
+          {/* 다중 선택 퀴즈 (낮은음자리표) */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                다중 선택 퀴즈 (낮은음자리표)
+              </h3>
+              <p className="text-gray-600 mb-6">
+                C2~G4 범위에서 특정 음의 모든 옥타브를 선택하세요.
+              </p>
+              <Link 
+                href="/note-quiz-3-bass"
+                className="inline-block bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200"
+              >
+                퀴즈 시작하기
+              </Link>
+            </div>
+          </div>
         </div>
+
+        
 
         {/* 특징 섹션 */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-12 md:mb-16">

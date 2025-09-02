@@ -19,9 +19,10 @@ interface VexFlowStaffProps {
   singleNote?: boolean;
   correctNoteName?: string; // 정답 정보 추가
   disableAudio?: boolean; // 오디오 기능 비활성화
+  clef?: 'treble' | 'bass';
 }
 
-export default function VexFlowStaff({ currentProblem, answered = false, singleNote = false, correctNoteName, disableAudio = false }: VexFlowStaffProps) {
+export default function VexFlowStaff({ currentProblem, answered = false, singleNote = false, correctNoteName, disableAudio = false, clef = 'treble' }: VexFlowStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -131,34 +132,58 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
     const lineSpacing = 20;
     
     // VexFlow와 동일한 옥타브로 매핑 (yToVexNote와 일치하도록 수정)
-    const noteMapping = [
+    const noteMappingTreble = [
       // 높은 부분: D5~G6
-      { y: staffTop - 4 * lineSpacing, note: 'G/6' },        // G6
-      { y: staffTop - 3.5 * lineSpacing, note: 'F/6' },      // F6
-      { y: staffTop - 3 * lineSpacing, note: 'E/6' },        // E6
-      { y: staffTop - 2.5 * lineSpacing, note: 'D/6' },      // D6
-      { y: staffTop - 2 * lineSpacing, note: 'C/6' },        // C6
-      { y: staffTop - 1.5 * lineSpacing, note: 'B/5' },      // B5
-      { y: staffTop - 1 * lineSpacing, note: 'A/5' },        // A5
-      { y: staffTop - 0.5 * lineSpacing, note: 'G/5' },      // G5
-      { y: staffTop, note: 'F/5' },                          // F5
-      { y: staffTop + 0.5 * lineSpacing, note: 'E/5' },      // E5
-      { y: staffTop + lineSpacing, note: 'D/5' },            // D5
-      
-      // 기존 범위: C5~C3
-      { y: staffTop + 1.5 * lineSpacing, note: 'C/5' },      // C5
-      { y: staffTop + 2 * lineSpacing, note: 'B/4' },        // B4
-      { y: staffTop + 2.5 * lineSpacing, note: 'A/4' },      // A4
-      { y: staffTop + 3 * lineSpacing, note: 'G/4' },        // G4
-      { y: staffTop + 3.5 * lineSpacing, note: 'F/4' },      // F4
-      { y: staffTop + 4 * lineSpacing, note: 'E/4' },        // E4
-      { y: staffTop + 4.5 * lineSpacing, note: 'D/4' },      // D4
-      { y: staffTop + 5 * lineSpacing, note: 'C/4' },        // C4
-      { y: staffTop + 5.5 * lineSpacing, note: 'B/3' },      // B3
-      { y: staffTop + 6 * lineSpacing, note: 'A/3' },        // A3
-      { y: staffTop + 6.5 * lineSpacing, note: 'G/3' },      // G3
-      { y: staffTop + 7 * lineSpacing, note: 'F/3' },        // F3
+      { y: staffTop - 4 * lineSpacing, note: 'G/6' },
+      { y: staffTop - 3.5 * lineSpacing, note: 'F/6' },
+      { y: staffTop - 3 * lineSpacing, note: 'E/6' },
+      { y: staffTop - 2.5 * lineSpacing, note: 'D/6' },
+      { y: staffTop - 2 * lineSpacing, note: 'C/6' },
+      { y: staffTop - 1.5 * lineSpacing, note: 'B/5' },
+      { y: staffTop - 1 * lineSpacing, note: 'A/5' },
+      { y: staffTop - 0.5 * lineSpacing, note: 'G/5' },
+      { y: staffTop, note: 'F/5' },
+      { y: staffTop + 0.5 * lineSpacing, note: 'E/5' },
+      { y: staffTop + lineSpacing, note: 'D/5' },
+      { y: staffTop + 1.5 * lineSpacing, note: 'C/5' },
+      { y: staffTop + 2 * lineSpacing, note: 'B/4' },
+      { y: staffTop + 2.5 * lineSpacing, note: 'A/4' },
+      { y: staffTop + 3 * lineSpacing, note: 'G/4' },
+      { y: staffTop + 3.5 * lineSpacing, note: 'F/4' },
+      { y: staffTop + 4 * lineSpacing, note: 'E/4' },
+      { y: staffTop + 4.5 * lineSpacing, note: 'D/4' },
+      { y: staffTop + 5 * lineSpacing, note: 'C/4' },
+      { y: staffTop + 5.5 * lineSpacing, note: 'B/3' },
+      { y: staffTop + 6 * lineSpacing, note: 'A/3' },
+      { y: staffTop + 6.5 * lineSpacing, note: 'G/3' },
+      { y: staffTop + 7 * lineSpacing, note: 'F/3' },
     ];
+
+    // 낮은음자리표 전용 매핑 (정확한 오선 위치: 상단선 A3, 중앙선 D3)
+    const noteMappingBass = [
+      // 위로 확장: D4~G4
+      { y: staffTop - 3 * lineSpacing, note: 'G/4' },
+      { y: staffTop - 2.5 * lineSpacing, note: 'F/4' },
+      { y: staffTop - 2 * lineSpacing, note: 'E/4' },
+      { y: staffTop - 1.5 * lineSpacing, note: 'D/4' },
+      { y: staffTop - 1 * lineSpacing, note: 'C/4' },    // 위로 1개 보조선: C4
+      { y: staffTop - 0.5 * lineSpacing, note: 'B/3' },  // 상단선 위 공간: B3
+      { y: staffTop, note: 'A/3' },                      // 상단선: A3
+      { y: staffTop + 0.5 * lineSpacing, note: 'G/3' },  // 공간: G3
+      { y: staffTop + 1 * lineSpacing, note: 'F/3' },    // 4번째 선: F3
+      { y: staffTop + 1.5 * lineSpacing, note: 'E/3' },  // 공간: E3
+      { y: staffTop + 2 * lineSpacing, note: 'D/3' },    // 중앙선: D3
+      { y: staffTop + 2.5 * lineSpacing, note: 'C/3' },  // 공간: C3
+      { y: staffTop + 3 * lineSpacing, note: 'B/2' },    // 2번째 선: B2
+      { y: staffTop + 3.5 * lineSpacing, note: 'A/2' },  // 공간: A2
+      { y: staffTop + 4 * lineSpacing, note: 'G/2' },    // 하단선: G2
+      { y: staffTop + 4.5 * lineSpacing, note: 'F/2' },  // 하단선 아래 공간: F2
+      { y: staffTop + 5 * lineSpacing, note: 'E/2' },
+      { y: staffTop + 5.5 * lineSpacing, note: 'D/2' },
+      { y: staffTop + 6 * lineSpacing, note: 'C/2' },
+    ];
+
+    const noteMapping = clef === 'bass' ? noteMappingBass : noteMappingTreble;
     
     // 가장 가까운 음표 찾기
     let closestNote = noteMapping[0];
@@ -180,35 +205,57 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
     const staffTop = 100;
     const lineSpacing = 20;
     
-    // VexFlow 옥타브 조정 (+1씩 높임) - D5~G6 범위 추가
-    const noteMapping = [
-      // 높은 부분: D5~G6
-      { y: staffTop - 4 * lineSpacing, note: 'g/6' },        // G6
-      { y: staffTop - 3.5 * lineSpacing, note: 'f/6' },      // F6
-      { y: staffTop - 3 * lineSpacing, note: 'e/6' },        // E6
-      { y: staffTop - 2.5 * lineSpacing, note: 'd/6' },      // D6
-      { y: staffTop - 2 * lineSpacing, note: 'c/6' },        // C6
-      { y: staffTop - 1.5 * lineSpacing, note: 'b/5' },      // B5
-      { y: staffTop - 1 * lineSpacing, note: 'a/5' },        // A5
-      { y: staffTop - 0.5 * lineSpacing, note: 'g/5' },      // G5
-      { y: staffTop, note: 'f/5' },                          // F5
-      { y: staffTop + 0.5 * lineSpacing, note: 'e/5' },      // E5
-      { y: staffTop + lineSpacing, note: 'd/5' },            // D5
-      
-      // 기존 범위: C5~C3
-      { y: staffTop + 1.5 * lineSpacing, note: 'c/5' },      // C5
-      { y: staffTop + 2 * lineSpacing, note: 'b/4' },        // B4
-      { y: staffTop + 2.5 * lineSpacing, note: 'a/4' },      // A4
-      { y: staffTop + 3 * lineSpacing, note: 'g/4' },        // G4
-      { y: staffTop + 3.5 * lineSpacing, note: 'f/4' },      // F4
-      { y: staffTop + 4 * lineSpacing, note: 'e/4' },        // E4
-      { y: staffTop + 4.5 * lineSpacing, note: 'd/4' },      // D4
-      { y: staffTop + 5 * lineSpacing, note: 'c/4' },        // C4
-      { y: staffTop + 5.5 * lineSpacing, note: 'b/3' },      // B3
-      { y: staffTop + 6 * lineSpacing, note: 'a/3' },        // A3
-      { y: staffTop + 6.5 * lineSpacing, note: 'g/3' },      // G3
-      { y: staffTop + 7 * lineSpacing, note: 'f/3' },        // F3
+    // 높은음자리표 매핑
+    const noteMappingTreble = [
+      { y: staffTop - 4 * lineSpacing, note: 'g/6' },
+      { y: staffTop - 3.5 * lineSpacing, note: 'f/6' },
+      { y: staffTop - 3 * lineSpacing, note: 'e/6' },
+      { y: staffTop - 2.5 * lineSpacing, note: 'd/6' },
+      { y: staffTop - 2 * lineSpacing, note: 'c/6' },
+      { y: staffTop - 1.5 * lineSpacing, note: 'b/5' },
+      { y: staffTop - 1 * lineSpacing, note: 'a/5' },
+      { y: staffTop - 0.5 * lineSpacing, note: 'g/5' },
+      { y: staffTop, note: 'f/5' },
+      { y: staffTop + 0.5 * lineSpacing, note: 'e/5' },
+      { y: staffTop + lineSpacing, note: 'd/5' },
+      { y: staffTop + 1.5 * lineSpacing, note: 'c/5' },
+      { y: staffTop + 2 * lineSpacing, note: 'b/4' },
+      { y: staffTop + 2.5 * lineSpacing, note: 'a/4' },
+      { y: staffTop + 3 * lineSpacing, note: 'g/4' },
+      { y: staffTop + 3.5 * lineSpacing, note: 'f/4' },
+      { y: staffTop + 4 * lineSpacing, note: 'e/4' },
+      { y: staffTop + 4.5 * lineSpacing, note: 'd/4' },
+      { y: staffTop + 5 * lineSpacing, note: 'c/4' },
+      { y: staffTop + 5.5 * lineSpacing, note: 'b/3' },
+      { y: staffTop + 6 * lineSpacing, note: 'a/3' },
+      { y: staffTop + 6.5 * lineSpacing, note: 'g/3' },
+      { y: staffTop + 7 * lineSpacing, note: 'f/3' },
     ];
+
+    // 낮은음자리표 매핑 (정확한 오선 위치: 상단선 A3, 중앙선 D3)
+    const noteMappingBass = [
+      { y: staffTop - 3 * lineSpacing, note: 'g/4' },
+      { y: staffTop - 2.5 * lineSpacing, note: 'f/4' },
+      { y: staffTop - 2 * lineSpacing, note: 'e/4' },
+      { y: staffTop - 1.5 * lineSpacing, note: 'd/4' },
+      { y: staffTop - 1 * lineSpacing, note: 'c/4' },
+      { y: staffTop - 0.5 * lineSpacing, note: 'b/3' },
+      { y: staffTop, note: 'a/3' },
+      { y: staffTop + 0.5 * lineSpacing, note: 'g/3' },
+      { y: staffTop + 1 * lineSpacing, note: 'f/3' },
+      { y: staffTop + 1.5 * lineSpacing, note: 'e/3' },
+      { y: staffTop + 2 * lineSpacing, note: 'd/3' },
+      { y: staffTop + 2.5 * lineSpacing, note: 'c/3' },
+      { y: staffTop + 3 * lineSpacing, note: 'b/2' },
+      { y: staffTop + 3.5 * lineSpacing, note: 'a/2' },
+      { y: staffTop + 4 * lineSpacing, note: 'g/2' },
+      { y: staffTop + 4.5 * lineSpacing, note: 'f/2' },
+      { y: staffTop + 5 * lineSpacing, note: 'e/2' },
+      { y: staffTop + 5.5 * lineSpacing, note: 'd/2' },
+      { y: staffTop + 6 * lineSpacing, note: 'c/2' },
+    ];
+
+    const noteMapping = clef === 'bass' ? noteMappingBass : noteMappingTreble;
     
     // 가장 가까운 음표 찾기
     let closestNote = noteMapping[0];
@@ -237,65 +284,61 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
         // 기존 내용 제거
         containerRef.current!.innerHTML = '';
 
-        // 모바일 반응형을 위한 크기 조정
-        const isMobile = window.innerWidth < 768;
-        const width = isMobile ? 350 : 800;
-        const height = isMobile ? 180 : 220;
+        // 컨테이너 실제 너비 기반 반응형 크기 설정 (SVG 축소로 인한 음표 소형화 방지)
+        const containerWidth = containerRef.current!.clientWidth || 320;
+        const isMobile = containerWidth < 640;
+        const width = Math.max(260, Math.min(containerWidth, 520));
+        const height = singleNote
+          ? Math.max(160, Math.round(width * 0.6))
+          : Math.max(180, Math.round(width * 0.5));
         
         // VexFlow 5.x 방식으로 렌더러 생성
         const renderer = new VexFlow.Renderer(containerRef.current!, VexFlow.Renderer.Backends.SVG);
         renderer.resize(width, height);
         const context = renderer.getContext();
 
-        // 오선 생성 - 모바일 반응형
-        const staveWidth = isMobile ? 250 : 700;
-        const staveX = isMobile ? 25 : 50;
-        const staveY = isMobile ? 40 : 60;
+        // 오선 생성 - 컨테이너 기반 반응형
+        const horizontalPadding = Math.max(16, Math.round(width * 0.06));
+        const staveX = horizontalPadding;
+        const staveWidth = Math.max(140, width - horizontalPadding * 2);
+        const staveY = Math.max(36, Math.round(height * 0.27));
         
         const stave = new VexFlow.Stave(staveX, staveY, staveWidth);
-        stave.addClef('treble');
+        stave.addClef(clef);
         stave.setContext(context).draw();
 
         if (singleNote) {
           // 단일 음표 모드
           const singleNote = yToVexNote(currentProblem.leftNote.y);
           const singleNoteObj = new VexFlow.StaveNote({ 
-            clef: 'treble', 
+            clef: clef, 
             keys: [singleNote], 
             duration: '4'
           });
 
           const displayNote = getNoteName(currentProblem.leftNote.y);
-          
-          // B4(포함) 이상의 음은 꼬리 아래, 미만은 위로 설정
-          const getStemDir = (note: string, displayNote: string) => {
-            const [pitch, octaveStr] = note.split('/');
-            const octave = parseInt(octaveStr, 10);
-            
-            let stemDir = 1; // 기본값: 위
-            
-            if (octave > 4) {
-              stemDir = -1; // 5옥타브 이상은 아래
-            } else if (octave === 4) {
-              if (pitch.toLowerCase() === 'b') {
-                stemDir = -1; // B4만 아래
-              }
-            }
-            
-            return stemDir;
+
+          // 표준 규칙: 중앙선(y = staffTop + 2*lineSpacing)을 기준으로
+          const getStemDirectionByY = (y: number) => {
+            const staffTop = 100;
+            const lineSpacing = 20;
+            // treble: 중앙선 B4 = staffTop + 2*spacing
+            // bass: 중앙선 D3 = staffTop + 2*spacing (동일 위치)
+            const middleLineY = staffTop + 2 * lineSpacing;
+            return y <= middleLineY ? -1 : 1;
           };
 
-          singleNoteObj.setStemDirection(getStemDir(singleNote, displayNote));
+          singleNoteObj.setStemDirection(getStemDirectionByY(currentProblem.leftNote.y));
           singleNoteObj.setStave(stave);
 
           // Voice 생성 및 음표 추가
           const voice = new VexFlow.Voice({ numBeats: 1, beatValue: 4 });
           voice.addTickables([singleNoteObj]);
 
-          // Formatter로 음표 배치 - 모바일 반응형
+          // Formatter로 음표 배치 - 컨테이너 기반 반응형
           const formatter = new VexFlow.Formatter();
           formatter.joinVoices([voice]);
-          formatter.format([voice], isMobile ? 150 : 200);
+          formatter.format([voice], Math.max(120, staveWidth - 80));
           
           // 음표 그리기
           voice.draw(context, stave);
@@ -334,38 +377,28 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
           const rightNote = yToVexNote(currentProblem.rightNote.y);
           
           const leftNoteObj = new VexFlow.StaveNote({ 
-            clef: 'treble', 
+            clef: clef, 
             keys: [leftNote], 
             duration: '4'
           });
           const rightNoteObj = new VexFlow.StaveNote({ 
-            clef: 'treble', 
+            clef: clef, 
             keys: [rightNote], 
             duration: '4'
           });
 
           const leftDisplayNote = getNoteName(currentProblem.leftNote.y);
           const rightDisplayNote = getNoteName(currentProblem.rightNote.y);
-          
-          const getStemDir = (note: string, displayNote: string) => {
-            const [pitch, octaveStr] = note.split('/');
-            const octave = parseInt(octaveStr, 10);
-            
-            let stemDir = 1;
-            
-            if (octave > 4) {
-              stemDir = -1;
-            } else if (octave === 4) {
-              if (pitch.toLowerCase() === 'b') {
-                stemDir = -1;
-              }
-            }
-            
-            return stemDir;
+
+          const getStemDirectionByY = (y: number) => {
+            const staffTop = 100;
+            const lineSpacing = 20;
+            const middleLineY = staffTop + 2 * lineSpacing;
+            return y <= middleLineY ? -1 : 1;
           };
 
-          leftNoteObj.setStemDirection(getStemDir(leftNote, leftDisplayNote));
-          rightNoteObj.setStemDirection(getStemDir(rightNote, rightDisplayNote));
+          leftNoteObj.setStemDirection(getStemDirectionByY(currentProblem.leftNote.y));
+          rightNoteObj.setStemDirection(getStemDirectionByY(currentProblem.rightNote.y));
 
           leftNoteObj.setStave(stave);
           rightNoteObj.setStave(stave);
@@ -375,7 +408,7 @@ export default function VexFlowStaff({ currentProblem, answered = false, singleN
 
           const formatter = new VexFlow.Formatter();
           formatter.joinVoices([voice]);
-          formatter.format([voice], isMobile ? 200 : 600);
+          formatter.format([voice], Math.max(180, staveWidth - 40));
           
           voice.draw(context, stave);
 

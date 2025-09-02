@@ -14,6 +14,8 @@ interface VexFlowDrawingStaffProps {
   onNoteDrawn: (note: Note) => void;
   answered: boolean;
   isMobile?: boolean;
+  clef?: 'treble' | 'bass';
+  showDrawAreaBox?: boolean;
 }
 
 export default function VexFlowDrawingStaff({ 
@@ -22,11 +24,14 @@ export default function VexFlowDrawingStaff({
   drawnNote, 
   onNoteDrawn, 
   answered,
-  isMobile: propIsMobile
+  isMobile: propIsMobile,
+  clef = 'treble',
+  showDrawAreaBox = false
 }: VexFlowDrawingStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vexFlowLoaded, setVexFlowLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [staffFirstLineY, setStaffFirstLineY] = useState<number>(180);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -42,19 +47,33 @@ export default function VexFlowDrawingStaff({
   const yToVexNote = (y: number): string => {
     // VexFlow는 오선지의 첫 번째 선(가장 아래 선)을 기준으로 음표를 배치
     // 오선지의 첫 번째 선 위치를 기준으로 계산
-    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
+    const staffFirstLine = staffFirstLineY;  // 실제 렌더된 오선 기준
     const lineSpacing = 20;
     
-    const noteMapping = [
-      { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },      // C5 (높은 도) - 첫 번째 선 위 2.5칸
-      { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },        // B4 (시) - 첫 번째 선 위 2칸
-      { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },      // A4 (라) - 첫 번째 선 위 1.5칸
-      { y: staffFirstLine - lineSpacing, note: 'g/4' },            // G4 (솔) - 첫 번째 선 위 1칸
-      { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },      // F4 (파) - 첫 번째 선 위 0.5칸
-      { y: staffFirstLine, note: 'e/4' },                          // E4 (미) - 첫 번째 선 위
-      { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },      // D4 (레) - 첫 번째 선 아래 0.5칸
-      { y: staffFirstLine + lineSpacing, note: 'c/4' },            // C4 (낮은 도) - 첫 번째 선 아래 1칸
+    const noteMappingTreble = [
+      { y: staffFirstLine - 2.5 * lineSpacing, note: 'c/5' },
+      { y: staffFirstLine - 2 * lineSpacing, note: 'b/4' },
+      { y: staffFirstLine - 1.5 * lineSpacing, note: 'a/4' },
+      { y: staffFirstLine - lineSpacing, note: 'g/4' },
+      { y: staffFirstLine - 0.5 * lineSpacing, note: 'f/4' },
+      { y: staffFirstLine, note: 'e/4' },
+      { y: staffFirstLine + 0.5 * lineSpacing, note: 'd/4' },
+      { y: staffFirstLine + lineSpacing, note: 'c/4' },
     ];
+
+    // 낮은음자리표: 범위 C3~C4, 첫 번째 선은 G2
+    const noteMappingBass = [
+      { y: staffFirstLine - 5 * lineSpacing, note: 'c/4' },
+      { y: staffFirstLine - 4.5 * lineSpacing, note: 'b/3' },
+      { y: staffFirstLine - 4 * lineSpacing, note: 'a/3' },
+      { y: staffFirstLine - 3.5 * lineSpacing, note: 'g/3' },
+      { y: staffFirstLine - 3 * lineSpacing, note: 'f/3' },
+      { y: staffFirstLine - 2.5 * lineSpacing, note: 'e/3' },
+      { y: staffFirstLine - 2 * lineSpacing, note: 'd/3' },
+      { y: staffFirstLine - 1.5 * lineSpacing, note: 'c/3' },
+    ];
+
+    const noteMapping = clef === 'bass' ? noteMappingBass : noteMappingTreble;
     
     // 가장 가까운 음표 찾기
     let closestNote = noteMapping[0];
@@ -83,9 +102,10 @@ export default function VexFlowDrawingStaff({
     // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
     const minX = isMobile ? 60 : 100;
     const maxX = isMobile ? 220 : 700;
-    const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
-    const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
-    const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
+    const staffFirstLine = staffFirstLineY;  // 실제 렌더된 오선 기준
+    const lineSpacing = 20;
+    const minY = clef === 'bass' ? (staffFirstLine - 5 * lineSpacing) : (staffFirstLine - 2.5 * lineSpacing);
+    const maxY = clef === 'bass' ? (staffFirstLine + 0.5 * lineSpacing) : (staffFirstLine + 1 * lineSpacing);
     
     if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
       onNoteDrawn({ x, y });
@@ -115,9 +135,10 @@ export default function VexFlowDrawingStaff({
       // 오선지 영역 내에서만 음표 그리기 (높은 도부터 낮은 도까지만)
       const minX = isMobile ? 60 : 100;
       const maxX = isMobile ? 220 : 700;
-      const staffFirstLine = isMobile ? 150 : 180;  // 오선지 첫 번째 선 실제 위치 (더 정확한 위치)
-      const minY = staffFirstLine - 2.5 * 20;  // 높은 도 위치 (C5) - 첫 번째 선 위 2.5칸
-      const maxY = staffFirstLine + 20;        // 낮은 도 위치 (C4) - 첫 번째 선 아래 1칸
+      const staffFirstLine = staffFirstLineY;  // 실제 렌더된 오선 기준
+      const lineSpacing = 20;
+      const minY = clef === 'bass' ? (staffFirstLine - 5 * lineSpacing) : (staffFirstLine - 2.5 * lineSpacing);
+      const maxY = clef === 'bass' ? (staffFirstLine + 0.5 * lineSpacing) : (staffFirstLine + 1 * lineSpacing);
       
       if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
         onNoteDrawn({ x, y });
@@ -148,31 +169,25 @@ export default function VexFlowDrawingStaff({
         const staveY = isMobile ? 70 : 100;
         
         const stave = new VexFlow.Stave(staveX, staveY, staveWidth);
-        stave.addClef('treble');
+        stave.addClef(clef);
         stave.setContext(context).draw();
+
+        // 실제 렌더된 오선의 첫 번째 선(아래 선) 위치 계산 및 저장
+        const lineSpacing = 20;
+        setStaffFirstLineY(staveY + 4 * lineSpacing);
 
         // 그려진 음표가 있으면 표시 (사용자가 그린 음표)
         if (drawnNote) {
           const noteName = yToVexNote(drawnNote.y);
           const noteObj = new VexFlow.StaveNote({ 
-            clef: 'treble', 
+            clef: clef, 
             keys: [noteName], 
             duration: '4'
           });
 
-          // B4(포함) 이상의 음은 꼬리 아래, 미만은 위로 설정
-          const [pitch, octaveStr] = noteName.split('/');
-          const octave = parseInt(octaveStr, 10);
-          
-          let stemDir = 1; // 기본값: 위
-          
-          if (octave > 4) {
-            stemDir = -1; // 5옥타브 이상은 아래
-          } else if (octave === 4) {
-            if (pitch.toLowerCase() === 'b') {
-              stemDir = -1; // B4만 아래
-            }
-          }
+          // 중앙선 기준: 위는 아래꼬리, 아래는 위꼬리
+          const middleLineY = (isMobile ? 150 : 180) - 2 * 20;
+          const stemDir = drawnNote.y <= middleLineY ? -1 : 1;
 
           noteObj.setStemDirection(stemDir);
           noteObj.setStave(stave);
@@ -197,24 +212,13 @@ export default function VexFlowDrawingStaff({
           // 정답 음표를 녹색으로 표시 (더 굵게)
           const correctNoteName = yToVexNote(targetY);
           const correctNoteObj = new VexFlow.StaveNote({ 
-            clef: 'treble', 
+            clef: clef, 
             keys: [correctNoteName], 
             duration: '4'
           });
 
-          // B4(포함) 이상의 음은 꼬리 아래, 미만은 위로 설정
-          const [pitch, octaveStr] = correctNoteName.split('/');
-          const octave = parseInt(octaveStr, 10);
-          
-          let stemDir = 1; // 기본값: 위
-          
-          if (octave > 4) {
-            stemDir = -1; // 5옥타브 이상은 아래
-          } else if (octave === 4) {
-            if (pitch.toLowerCase() === 'b') {
-              stemDir = -1; // B4만 아래
-            }
-          }
+          const middleLineY = (isMobile ? 150 : 180) - 2 * 20;
+          const stemDir = targetY <= middleLineY ? -1 : 1;
 
           correctNoteObj.setStemDirection(stemDir);
           correctNoteObj.setStave(stave);
@@ -263,7 +267,17 @@ export default function VexFlowDrawingStaff({
           style={{ minHeight: isMobile ? '200px' : '280px' }}
           onClick={handleStaffClick}
         />
-        
+        {showDrawAreaBox && (
+          <div
+            className="pointer-events-none absolute border-2 border-dashed border-red-500"
+            style={{
+              left: (isMobile ? 60 : 100),
+              width: (isMobile ? 160 : 600),
+              top: staffFirstLineY - (clef === 'bass' ? 5 * 20 : 2.5 * 20),
+              height: (clef === 'bass' ? (5.5 * 20) : (3.5 * 20))
+            }}
+          />
+        )}
 
       </div>
       
